@@ -74,7 +74,13 @@ const authGoogle = async (req, res, next) => {       // Login with google api
 // Controller for super admin
 const index = async (req, res, next) => {     // Get all users
   const user = await User.find({})
-  return res.status(200).json({ user })
+    return res.status(201).json({ 
+    data: [
+      { data: user }
+    ], 
+    paganition: {},
+    message: "All users found success" 
+  })
 }
 
 const newAdmin = async (req, res, next) => {   // Create user (admin with status = 1)
@@ -95,12 +101,12 @@ const getAllAdmin = async (req, res, next) => {      // Get admins
   const admin = await User.find({ type: 1 })
 
   return res.status(201).json({ 
-  data: [
-    { data: admin }
-  ], 
-  paganition: {},
-  message: "All users found success" 
-})
+    data: [
+      { data: admin }
+    ], 
+    paganition: {},
+    message: "All users found success" 
+  })
 }
 
 
