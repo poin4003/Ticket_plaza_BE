@@ -25,7 +25,8 @@ const UserSchema = new Schema({
     type: String
   },
   type: {
-    type: Number
+    type: Number,
+    default: 0
   },
   status: {
     type: Number,
@@ -40,10 +41,6 @@ const UserSchema = new Schema({
     type: String,
     default: null
   },
-  payedBill: [{
-    type: Schema.Types.ObjectId,
-    ref: 'Bill'
-  }],
   identityID: {
     type: String
   }

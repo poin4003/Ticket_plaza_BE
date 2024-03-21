@@ -27,7 +27,7 @@ router.route('/auth/google')
 
 router.route('/superAdmin')    // Route for superadmin
   .get(passport.authenticate('jwt', { session: false}), UserController.getAllAdmin)
-  .post(passport.authenticate('jwt', { session: false}), validateBody(schemas.adminSchema), UserController.newAdmin)
+  .post(validateBody(schemas.adminSchema), UserController.newAdmin)
 
 router.route('/:userID')  // Route for User
   .get(passport.authenticate('jwt', { session: false}),validateParam(schemas.idSchema, 'userID'), UserController.getUser)
