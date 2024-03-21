@@ -45,6 +45,7 @@ app.use((err, req, res, next) => {
   // Respone to Client
   return res.status(status).json({
     error: {
+      code: status,
       message: error.message
     }
   })

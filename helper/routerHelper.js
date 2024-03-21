@@ -48,8 +48,7 @@ const schemas = {
     password: Joi.string().min(6).required(),
     email: Joi.string().min(2).required(),
     phone: Joi.string().max(10).min(10),    
-    birthDay: Joi.string(),
-    identityID: Joi.number()
+    birthDay: Joi.string()
   }),
 
   authSignInSchema: Joi.object().keys({
@@ -61,9 +60,14 @@ const schemas = {
     param: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required()
   }),
 
-  userSchema: Joi.object().keys({
+  adminSchema: Joi.object().keys({
     fullName: Joi.string().min(2).required(),
-    email: Joi.string().email().required() 
+    password: Joi.string().min(6).required(),
+    email: Joi.string().min(2).required(),
+    phone: Joi.string().max(10).min(10).required(),
+    birthDay: Joi.string().required(),
+    type: Joi.number().min(1).max(1).required(),
+    identityID: Joi.string().min(12).max(12).required()
   }),
 
   userOptionalSchema: Joi.object().keys({

@@ -45,7 +45,7 @@ const UserSchema = new Schema({
     ref: 'Bill'
   }],
   identityID: {
-    type: Number
+    type: String
   }
 })
 

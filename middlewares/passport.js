@@ -19,11 +19,12 @@ passport.use(new JwtStrategy({
   try {
     const user = await User.findById(payload.sub)
 
-    if (!user) return done(null, false)
+    if (!user) 
+      return done({ message: "Unauthorized access, account has not been created yet" }, false)
 
     done(null, user)
   } catch (error) {
-    done(error, false)
+    done({ code: error.code, message: error.message }, false) 
   }
 }))
 
@@ -34,12 +35,13 @@ passport.use(new GooglePlusTokenStrategy({
 }, async (accessToken, refreshToken, profile, done) => {
   try {
     // Check wether this current user exists in out database
-    const user = await User.findOne({
+    const founduser = await User.findOne({
       authGoogleID: profile.id,
       authType: "google"
     })
 
-    if (user) return done(null, user)
+    if (founduser) return done(null, founduser)
+    // console.log(profile)
 
     // If new account
     const newUser = new User({
@@ -53,7 +55,7 @@ passport.use(new GooglePlusTokenStrategy({
 
     done(null, newUser)
   } catch (error) {
-    done(error, false)
+    done({ code: error.code, message: error.message }, false)
   }
 }))
 
@@ -66,15 +68,17 @@ passport.use(
     async (email, password, done) => {
       try {
         const user = await User.findOne({ email })
-        if (!user) return done(null, false)
+        if (!user) 
+        return done({ message: "Unauthorized access, account has not been created yet" }, false)
 
         const isCorrectPassword = await user.isValidPassword(password)
 
-        if (!isCorrectPassword) return done(null, false)
+        if (!isCorrectPassword) 
+        return done({ message: "Unauthorized access, not correct password" }, false) 
 
         done(null, user)
       } catch (error) {
-        done(error, false)
+        done({ code: error.code, message: error.message }, false)
       }
     }
   )
