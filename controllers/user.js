@@ -24,7 +24,7 @@ const signIn = async (req, res, next) => {           // LogIn (post)
       { data: user }
     ], 
     paganition: {},
-    message: "Success to login" 
+    message: "Đăng nhập thành công!" 
   })
 }
 
@@ -35,7 +35,7 @@ const signUp = async (req, res, next) => {           // SignUp (post)
     // Check if there is a user with the same user
     const foundUser = await User.findOne({ email })
     if (foundUser) {
-      const error = new Error("Email is already in use")
+      const error = new Error("Email đã được sử dụng!")
       error.status = 403
       throw error
     }
@@ -53,7 +53,7 @@ const signUp = async (req, res, next) => {           // SignUp (post)
         { data: newUser}
       ], 
       paganition: {},
-      message: "Success to login" 
+      message: "Tạo tài khoản mới thành công!" 
     })
   } catch (error) {
     next(error)
@@ -67,7 +67,7 @@ const authGoogle = async (req, res, next) => {       // Login with google api
   return res.status(200).json({
     data: [{ data: user }], 
     paganition: {}, 
-    message: "OAuth Google success" 
+    message: "Đăng nhập với Google OAuth thành công!" 
   })
 }
 
@@ -79,7 +79,7 @@ const index = async (req, res, next) => {     // Get all users
       { data: user }
     ], 
     paganition: {},
-    message: "All users found success" 
+    message: "Tất cả người dùng đã được tìm thấy thành công!" 
   })
 }
 
@@ -93,7 +93,7 @@ const newAdmin = async (req, res, next) => {   // Create user (admin with status
       { data: newAdmin }
     ], 
     paganition: {},
-    message: "New admin created success" 
+    message: "Tạo admin mới thành công!" 
   })
 }
 
@@ -105,7 +105,7 @@ const getAllAdmin = async (req, res, next) => {      // Get admins
       { data: admin }
     ], 
     paganition: {},
-    message: "All users found success" 
+    message: "Tất cả admin đã được tìm thấy thành công!" 
   })
 }
 
@@ -119,34 +119,6 @@ const getUser = async (req, res, next) => {      // Get user by id (get)
   return res.status(200).json({ user })
 }
 
-const replaceUser = async (req, res, next) => {  //  Replace user by id (put)
-  const { userID } = req.value.params
-
-  try {
-    const foundUser = await User.findById(userID)
-
-    if (!foundUser) {
-      const error = new Error("Can not found user")
-      error.status = 404
-      throw error 
-    }
-
-    const newUser = req.value.body
-
-    const replaceUser = await User.findByIdAndUpdate(userID, newUser)
-
-    return res.status(201).json({ 
-      data: [
-        { data: newUser }
-      ], 
-      paganition: {},
-      message: "User replaced success" 
-    })
-  } catch (error) {
-    next(error)
-  }
-}
-
 const updateUser = async (req, res, next) => {   // Update user by id (patch)
   const { userID } = req.value.params
 
@@ -154,7 +126,7 @@ const updateUser = async (req, res, next) => {   // Update user by id (patch)
     const foundUser = await User.findById(userID)
 
     if (!foundUser) {
-      const error = new Error("Can not found user")
+      const error = new Error("Không thể tìm thấy người dùng!")
       error.status = 404
       throw error 
     }
@@ -168,7 +140,7 @@ const updateUser = async (req, res, next) => {   // Update user by id (patch)
         { data: newUser }
       ], 
       paganition: {},
-      message: "User updated success" 
+      message: "Cập nhật thông tin người dùng thành công!" 
     })
   } catch (error) {
     next(error)
@@ -181,7 +153,6 @@ module.exports = {
   newAdmin, 
   getAllAdmin,
   getUser,
-  replaceUser,
   updateUser,
   signIn,
   signUp,

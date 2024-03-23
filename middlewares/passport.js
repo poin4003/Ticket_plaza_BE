@@ -20,7 +20,7 @@ passport.use(new JwtStrategy({
     const user = await User.findById(payload.sub)
 
     if (!user) 
-      return done({ message: "Unauthorized access, account has not been created yet" }, false)
+      return done({ message: "Lỗi xác thực, tài khoản chưa được tạo!" }, false)
 
     done(null, user)
   } catch (error) {
@@ -69,12 +69,12 @@ passport.use(
       try {
         const user = await User.findOne({ email })
         if (!user) 
-        return done({ message: "Unauthorized access, account has not been created yet" }, false)
+        return done({ message: "Lỗi xác thực, tài khoản chưa được tạo!" }, false)
 
         const isCorrectPassword = await user.isValidPassword(password)
 
         if (!isCorrectPassword) 
-        return done({ message: "Unauthorized access, not correct password" }, false) 
+        return done({ message: "Lỗi xác thực, sai mật khẩu!" }, false) 
 
         done(null, user)
       } catch (error) {

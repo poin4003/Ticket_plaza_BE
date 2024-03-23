@@ -7,46 +7,49 @@ const EventSchema = new Schema({
     type: String
   },
   host: {
-    type: String
+    type: Schema.Types.ObjectId
   },
   members: [{
-    type: String
+    type: Schema.Types.ObjectId
   }],
   description: {
     type: String
   },
-  photos: {
+  photo: {
     type: String
   },
   type: {
-    type: String
+    type: String,
+    enum: ["music", "workshop", "concert", "exhibit", "orther"],
+    default: "orther"
+  },
+  place: {
+    type: String,
+    dafault: "Viet Nam"
   },
   time: {
-    type: String
+    type: String,
+    default: "00:00"
   },
   date: {
-    type: String
+    type: String,
+    default: "0/0/0"
   },
-  tickets_id: [{
-    type: String
-  }],
-  successBill_id: [{
-    type: String
-  }],
   status: {
-    type: Number
+    type: Number,
+    default: 0
   },
   views: {
-    type: Number
+    type: Number,
+    default: 0
   },
   profit: {
-    type: String
-  },
-  feedback_id: [{
-    type: String
-  }],
+    type: Number,
+    default: 0
+  }, 
   maxTicketPerBill: {
-    type: Number
+    type: Number,
+    default: 0
   }
 })
 

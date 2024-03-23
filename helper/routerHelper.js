@@ -1,7 +1,6 @@
 // Import module for validating
 const Joi = require('@hapi/joi')
 
-
 // Middleware function for validating body
 const validateBody = (schema, name) => {
 try {
@@ -20,8 +19,8 @@ try {
       next()
     }
   }
-} catch (error) {
-  console.log("check body>>> ",error)
+} catch (error) { 
+  next(error)
 }
 }
 
@@ -43,7 +42,13 @@ const validateParam = (schema, name) => {
 }
 
 const schemas = {
-  authSignUpSchema: Joi.object().keys({
+  // Validate schemas
+  idSchema: Joi.object().keys({                 // Vaidate schema for param
+    param: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required()
+  }),
+
+  // Validate schemas for user
+  authSignUpSchema: Joi.object().keys({         // Validate schema for create account
     fullName: Joi.string().min(2).required(),
     password: Joi.string().min(6).required(),
     email: Joi.string().min(2).required(),
@@ -51,16 +56,12 @@ const schemas = {
     birthDay: Joi.string()
   }),
 
-  authSignInSchema: Joi.object().keys({
+  authSignInSchema: Joi.object().keys({         // Validate schema for login
     email: Joi.string().email().required(),
     password: Joi.string().min(6).required()
   }), 
 
-  idSchema: Joi.object().keys({
-    param: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required()
-  }),
-
-  adminSchema: Joi.object().keys({
+  adminSchema: Joi.object().keys({              // Validate schema for admin
     fullName: Joi.string().min(2).required(),
     password: Joi.string().min(6).required(),
     email: Joi.string().min(2).required(),
@@ -70,12 +71,46 @@ const schemas = {
     identityID: Joi.string().min(12).max(12).required()
   }),
 
-  userOptionalSchema: Joi.object().keys({
+  userOptionalSchema: Joi.object().keys({       // Validate schema for admin (updating)
     fullName: Joi.string().min(2),
-    email: Joi.string().email()
-  })
+    password: Joi.string().min(6),
+    email: Joi.string().min(2),
+    phone: Joi.string().max(10).min(10),
+    birthDay: Joi.string(),
+    type: Joi.number().min(1).max(1),
+    identityID: Joi.string().min(12).max(12)
+  }), 
+
+  // Validate schema for event
+  eventSchema: Joi.object().keys({              // Validate schema for event
+    name: Joi.string().min(2).required(),
+    host: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
+    members: Joi.array().items(Joi.string().regex(/^[0-9a-fA-F]{24}$/)),
+    description: Joi.string().min(10).required(),
+    photo: Joi.string().required(),
+    type: Joi.string().required(),
+    place: Joi.string().required(),
+    time: Joi.string().required(),
+    date: Joi.string().required(),
+    maxTicketPerBill: Joi.number().required()
+  }),
+
+  eventOptionalSchema: Joi.object().keys({              // Validate schema for event (updating)
+    name: Joi.string().min(2),
+    host: Joi.string().regex(/^[0-9a-fA-F]{24}$/),
+    members: Joi.array().items(Joi.string().regex(/^[0-9a-fA-F]{24}$/)),
+    description: Joi.string().min(10),
+    photo: Joi.string(),
+    type: Joi.string(),
+    place: Joi.string(),
+    time: Joi.string(),
+    date: Joi.string(),
+    maxTicketPerBill: Joi.number()
+  }),
 }
 
+
+// Export modules
 module.exports = {
   validateParam,
   validateBody,

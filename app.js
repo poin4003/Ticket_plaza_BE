@@ -7,9 +7,11 @@ const logger = require('morgan')           // Module for logger
 const mongoClient = require('mongoose')    // Module for database
 const bodyParser = require('body-parser')  // Module for body handler
 const secureApp = require('helmet')        // Module for security
+const cors = require('cors')
 
 // Import environment files
-const usersRoute = require('./routes/user')
+const usersRoute = require('./routes/user')    // Import user's route configs
+const eventRoute = require('./routes/event')   // Import user's event configs
 
 // Setup connect mongodb by mongoose
 const dbUrl = `mongodb+srv://PcHuy:ctjerXC3Id87y0oH@cluster0.idi4juk.mongodb.net/TicketPlaza?retryWrites=true&w=majority&appName=Cluster0`;
@@ -27,6 +29,7 @@ app.use(secureApp())    // Update security option for express
 // Middlewares
 app.use(logger('dev'))
 app.use(bodyParser.json())
+app.use(cors())
 
 // Routes
 app.get('/', (req, res, next) => {  // Test route
@@ -35,7 +38,8 @@ app.get('/', (req, res, next) => {  // Test route
   })
 })
 
-app.use('/users', usersRoute)  // Navigate to usersRoute
+app.use('/users', usersRoute)      // Navigate to usersRoute
+app.use('/events', eventRoute)     // Navigate to eventRoute
 
 // Error handler function
 app.use((err, req, res, next) => {

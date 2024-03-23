@@ -17,22 +17,32 @@ router.route('/')
   .get(UserController.index)
 
 router.route('/signup')  // Route for create account
-  .post(validateBody(schemas.authSignUpSchema), UserController.signUp)
+  .post(validateBody(schemas.authSignUpSchema), 
+    UserController.signUp)
 
 router.route('/login')   // Route for login
-  .post(passport.authenticate('local', { session: false}), validateBody(schemas.authSignInSchema), UserController.signIn)
+  .post(passport.authenticate('local', { session: false}), 
+    validateBody(schemas.authSignInSchema), 
+    UserController.signIn)
 
 router.route('/auth/google')
-  .post(passport.authenticate('google-plus-token', { session: false }), UserController.authGoogle)
+  .post(passport.authenticate('google-plus-token', { session: false }), 
+    UserController.authGoogle)
 
 router.route('/superAdmin')    // Route for superadmin
-  .get(passport.authenticate('jwt', { session: false}), UserController.getAllAdmin)
-  .post(validateBody(schemas.adminSchema), UserController.newAdmin)
+  .get(passport.authenticate('jwt', { session: false}), 
+    UserController.getAllAdmin)
+  .post(validateBody(schemas.adminSchema), 
+    UserController.newAdmin)
 
 router.route('/:userID')  // Route for User
-  .get(passport.authenticate('jwt', { session: false}),validateParam(schemas.idSchema, 'userID'), UserController.getUser)
-  .put(passport.authenticate('jwt', { session: false }),validateParam(schemas.idSchema, 'userID'), validateBody(schemas.userSchema), UserController.replaceUser)
-  .patch(passport.authenticate('jwt', {session: false}),validateParam(schemas.idSchema, 'userID'), validateBody(schemas.userOptionalSchema), UserController.updateUser)
+  .get(passport.authenticate('jwt', { session: false}),
+    validateParam(schemas.idSchema, 'userID'), 
+    UserController.getUser)
+  .patch(passport.authenticate('jwt', {session: false}),
+    validateParam(schemas.idSchema, 'userID'), 
+    validateBody(schemas.userOptionalSchema), 
+    UserController.updateUser)
 
 
 // Export module
