@@ -21,7 +21,10 @@ const signIn = async (req, res, next) => {           // LogIn (post)
   res.setHeader('Authorization', token)
   return res.status(201).json({ 
     data: [
-      { data: user }
+      { 
+        data: user,
+        token: token 
+      },
     ], 
     paganition: {},
     message: "Đăng nhập thành công!" 
@@ -50,7 +53,10 @@ const signUp = async (req, res, next) => {           // SignUp (post)
     res.setHeader('Authorization', token)
       return res.status(201).json({ 
       data: [
-        { data: newUser}
+        { 
+          data: newUser,
+          token: token
+        }
       ], 
       paganition: {},
       message: "Tạo tài khoản mới thành công!" 
@@ -65,7 +71,12 @@ const authGoogle = async (req, res, next) => {       // Login with google api
   const user = req.user
   res.setHeader('Authorization', token)
   return res.status(200).json({
-    data: [{ data: user }], 
+    data: [
+      { 
+        data: user,
+        token: token
+      }
+    ], 
     paganition: {}, 
     message: "Đăng nhập với Google OAuth thành công!" 
   })
