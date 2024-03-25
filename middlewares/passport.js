@@ -20,7 +20,7 @@ passport.use(new JwtStrategy({
     const user = await User.findById(payload.sub)
 
     if (!user) 
-      return done({ message: "Lỗi xác thực, tài khoản chưa được tạo!" }, false)
+      return done({ message: "Lỗi xác thực, token không hợp lệ!" }, false)
 
     done(null, user)
   } catch (error) {
@@ -45,6 +45,7 @@ passport.use(new GooglePlusTokenStrategy({
 
     // If new account
     const newUser = new User({
+      type: 0,
       authType: 'google',
       authGoogleID: profile.id,
       email: profile.emails[0].value,

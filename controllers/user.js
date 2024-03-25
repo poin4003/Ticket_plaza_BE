@@ -17,7 +17,9 @@ const encodedToken = (userID) => {
 // Controller for Authentication
 const signIn = async (req, res, next) => {           // LogIn (post)
   const token = encodedToken(req.user._id)
-  const user = req.user
+  const user = req.user.toObject()
+  delete user.password
+
   res.setHeader('Authorization', token)
   return res.status(201).json({ 
     data: [
@@ -26,7 +28,7 @@ const signIn = async (req, res, next) => {           // LogIn (post)
         token: token 
       },
     ], 
-    paganition: {},
+    pagination: {},
     message: "Đăng nhập thành công!" 
   })
 }
@@ -44,21 +46,24 @@ const signUp = async (req, res, next) => {           // SignUp (post)
     }
 
     // Create a new user
-    const newUser = new User({ fullName, email, phone, birthDay, password})
+    const newUser = new User({ fullName, email, phone, birthDay, password, type: 0})
     newUser.save()
     
     // Encode a token
     const token = encodedToken(newUser._id)
 
+    const user = newUser.toObject()
+    delete user.password
+
     res.setHeader('Authorization', token)
       return res.status(201).json({ 
       data: [
         { 
-          data: newUser,
+          data: user,
           token: token
         }
       ], 
-      paganition: {},
+      pagination: {},
       message: "Tạo tài khoản mới thành công!" 
     })
   } catch (error) {
@@ -67,8 +72,10 @@ const signUp = async (req, res, next) => {           // SignUp (post)
 }
 
 const authGoogle = async (req, res, next) => {       // Login with google api
+  console.log(req.value)
   const token = encodedToken(req.user._id)
-  const user = req.user
+  const user = req.user.toObject()
+  delete user.password
   res.setHeader('Authorization', token)
   return res.status(200).json({
     data: [
@@ -77,60 +84,257 @@ const authGoogle = async (req, res, next) => {       // Login with google api
         token: token
       }
     ], 
-    paganition: {}, 
+    pagination: {}, 
     message: "Đăng nhập với Google OAuth thành công!" 
   })
 }
 
-// Controller for super admin
-const index = async (req, res, next) => {     // Get all users
-  const user = await User.find({})
+// Controller for admin
+const getUsers = async (req, res, next) => {     // Get a users list
+  let { page, limit, type, status } = req.query
+  limit = parseInt(limit) || 10
+  page = parseInt(page) || 1
+  if (!type) type = 1
+  if (!status) status = undefined
+
+  const skip = (page - 1) * limit;
+
+  try {
+    let query = { type: type }
+
+    if (status !== undefined) query.status = status;
+
+    const users = await User.find(query).skip(skip).limit(limit).select("-password -authGoogleID")
+
+    const totalUsers = await User.countDocuments(query)
+
+    const totalPages = Math.ceil(totalUsers / limit)
+
     return res.status(201).json({ 
+      data: [
+        { data: users }
+      ], 
+      pagination: {
+        totalItems: totalUsers,
+        currentPage: page,
+        totalPages: totalPages
+      },
+      message: `${totalUsers} người dùng đã được tìm thấy!` 
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+const getUsersByName = async (req, res, next) => {    // Get a users list by name, type and status
+  let { page, limit, type, status, keyword } = req.query
+  page = parseInt(page) || 1
+  limit = parseInt(limit) || 10
+  if (!type) type = 1
+  if (!status) status = undefined
+
+  const skip = (page - 1) * limit
+
+  try {
+    let query = {};
+    if (keyword) query = { fullName: { $regex: keyword, $options: 'i'} }
+    if (status) query.status = status
+    query.type = type
+    // console.log(query)
+
+    const users = await User.find(query).skip(skip).limit(limit).select("-password -authGoogleID")
+    const totalUsers = await User.countDocuments(query)
+    const totalPages = Math.ceil(totalUsers / limit)
+
+    return res.status(201).json({ 
+      data: [
+        { data: users }
+      ], 
+      pagination: {
+        totalItems: totalUsers,
+        currentPage: page,
+        totalPages: totalPages
+      },
+      message: `${totalUsers} người dùng được tìm thấy!`
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+const getUsersByEmail = async (req, res, next) => {    // Get a users list by email, type and status
+  let { page, limit, type, status, email } = req.query
+  page = parseInt(page) || 1
+  limit = parseInt(limit) || 10
+  if (!type) type = 1
+  if (!status) status = undefined
+
+  const skip = (page - 1) * limit
+
+  try {
+    let query = {};
+    if (email) query = { email: { $regex: email, $options: 'i'} }
+    if (status) query.status = status
+    query.type = type
+    // console.log(query)
+
+    const users = await User.find(query).skip(skip).limit(limit).select("-password -authGoogleID")
+    const totalUsers = await User.countDocuments(query)
+    const totalPages = Math.ceil(totalUsers / limit)
+
+    return res.status(201).json({ 
+      data: [
+        { data: users }
+      ], 
+      pagination: {
+        totalItems: totalUsers,
+        currentPage: page,
+        totalPages: totalPages
+      },
+      message: `${totalUsers} người dùng được tìm thấy!`
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+const getUsersByPhone = async (req, res, next) => {    // Get a users list by phone, type and status
+  let { page, limit, type, status, phone } = req.query
+  page = parseInt(page) || 1
+  limit = parseInt(limit) || 10
+  if (!type) type = 1
+  if (!status) status = undefined
+
+  const skip = (page - 1) * limit
+
+  try {
+    let query = {};
+    if (phone) query = { phone: { $regex: phone } }
+    if (status) query.status = status
+    query.type = type
+    console.log(query)
+
+    const users = await User.find(query).skip(skip).limit(limit).select("-password -authGoogleID")
+    const totalUsers = await User.countDocuments(query)
+    const totalPages = Math.ceil(totalUsers / limit)
+
+    return res.status(201).json({ 
+      data: [
+        { data: users }
+      ], 
+      pagination: {
+        totalItems: totalUsers,
+        currentPage: page,
+        totalPages: totalPages
+      },
+      message: `${totalUsers} người dùng được tìm thấy!`
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+const getUsersByIdentityId = async (req, res, next) => {    // Get a users list by identityId ,type and status
+  let { page, limit, type, status, identityID } = req.query
+  page = parseInt(page) || 1
+  limit = parseInt(limit) || 10
+  if (!type) type = 1
+  if (!status) status = undefined
+
+  const skip = (page - 1) * limit
+
+  try {
+    let query = {};
+    if (identityID) query = { identityID: { $regex: identityID, $options: 'i'} }
+    if (status) query.status = status
+    query.type = type
+    console.log(query)
+
+    const users = await User.find(query).skip(skip).limit(limit).select("-password -authGoogleID")
+    const totalUsers = await User.countDocuments(query)
+    const totalPages = Math.ceil(totalUsers / limit)
+
+    return res.status(201).json({ 
+      data: [
+        { data: users }
+      ], 
+      pagination: {
+        totalItems: totalUsers,
+        currentPage: page,
+        totalPages: totalPages
+      },
+      message: `${totalUsers} người dùng được tìm thấy!`
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+const createNewUser = async (req, res, next) => {   // Create user
+  const newUser = new User(req.value.body)
+
+  console.log(newUser.type)
+
+  if (newUser.type === undefined) newUser.type = 1;
+
+  await newUser.save()
+
+  const user = newUser.toObject()
+  delete user.password
+
+  return res.status(201).json({ 
     data: [
       { data: user }
     ], 
-    paganition: {},
-    message: "Tất cả người dùng đã được tìm thấy thành công!" 
+    pagination: {},
+    message: "Tạo người dùng mới thành công!" 
   })
 }
 
-const newAdmin = async (req, res, next) => {   // Create user (admin with status = 1)
-  const newAdmin = new User(req.body)
-
-  await newAdmin.save()
-
-  return res.status(201).json({ 
-    data: [
-      { data: newAdmin }
-    ], 
-    paganition: {},
-    message: "Tạo admin mới thành công!" 
-  })
-}
-
-const getAllAdmin = async (req, res, next) => {      // Get admins
-  const admin = await User.find({ type: 1 })
-
-  return res.status(201).json({ 
-    data: [
-      { data: admin }
-    ], 
-    paganition: {},
-    message: "Tất cả admin đã được tìm thấy thành công!" 
-  })
-}
-
-
-// Controller for User handling
-const getUser = async (req, res, next) => {      // Get user by id (get)
+// Controller for Customer
+const getUserById = async (req, res, next) => {      // Get user by id (get)
   const { userID } = req.value.params
 
-  const user = await User.findById(userID)
+  const user = await User.findById(userID).select("-password -authGoogleID")
 
-  return res.status(200).json({ user })
+  return res.status(201).json({ 
+    data: [
+      { data: user }
+    ], 
+    pagination: {},
+    message: "Tài khoản đã được tìm thấy!" 
+  })
 }
 
-const updateUser = async (req, res, next) => {   // Update user by id (patch)
+const updateUserById = async (req, res, next) => {   // Update user by id (patch)
+  const { userID } = req.value.params
+
+  try {
+    const foundUser = await User.findById(userID).select("-password -authGoogleID")
+
+    if (!foundUser) {
+      const error = new Error("Không thể tìm thấy tài khoản người dùng!")
+      error.status = 404
+      throw error 
+    }
+
+    const newUser = req.value.body
+
+    const updateCustomer = await User.findByIdAndUpdate(userID, newUser)
+
+    return res.status(201).json({ 
+      data: [
+        { data: user }
+      ], 
+      pagination: {},
+      message: "Cập nhật thông tin người dùng thành công!" 
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+const deactivateAcount = async (req, res, next) => {     // 
   const { userID } = req.value.params
 
   try {
@@ -139,19 +343,19 @@ const updateUser = async (req, res, next) => {   // Update user by id (patch)
     if (!foundUser) {
       const error = new Error("Không thể tìm thấy người dùng!")
       error.status = 404
-      throw error 
+      throw error
     }
 
     const newUser = req.value.body
 
-    const updateUser = await User.findByIdAndUpdate(userID, newUser)
+    const deactivateUser = await User.findByIdAndUpdate(userID, { status: 0 })
 
-    return res.status(201).json({ 
+        return res.status(201).json({ 
       data: [
         { data: newUser }
       ], 
-      paganition: {},
-      message: "Cập nhật thông tin người dùng thành công!" 
+      pagination: {},
+      message: "Vô hiệu hóa người dùng thành công!" 
     })
   } catch (error) {
     next(error)
@@ -160,12 +364,16 @@ const updateUser = async (req, res, next) => {   // Update user by id (patch)
 
 // Export controllers
 module.exports = {
-  index,
-  newAdmin, 
-  getAllAdmin,
-  getUser,
-  updateUser,
   signIn,
   signUp,
-  authGoogle
+  authGoogle,
+  getUsers,
+  getUsersByName,
+  getUsersByEmail,
+  getUsersByPhone,
+  getUsersByIdentityId,
+  getUserById,
+  createNewUser,
+  updateUserById,
+  deactivateAcount
 }

@@ -25,8 +25,7 @@ const UserSchema = new Schema({
     type: String
   },
   type: {
-    type: Number,
-    default: 0
+    type: Number
   },
   status: {
     type: Number,

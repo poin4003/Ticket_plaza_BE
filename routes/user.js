@@ -14,7 +14,26 @@ const passportConfig = require('../middlewares/passport')
 
 // Routes
 router.route('/')
-  .get(UserController.index)
+  .get(passport.authenticate('jwt', { session: false }),
+    UserController.getUsers)
+  .post(validateBody(schemas.userSchema), 
+    UserController.createNewUser)
+
+router.route('/getUsersByName')
+  .get(passport.authenticate('jwt', { session: false }),
+    UserController.getUsersByName)
+
+router.route('/getUsersByEmail')
+  .get(passport.authenticate('jwt', { session: false }),
+    UserController.getUsersByEmail)
+
+router.route('/getUsersByPhone')
+  .get(passport.authenticate('jwt', { session: false }),
+    UserController.getUsersByPhone)
+
+router.route('/getUsersByIdentityID')
+  .get(passport.authenticate('jwt', { session: false }),
+    UserController.getUsersByIdentityId)
 
 router.route('/signup')  // Route for create account
   .post(validateBody(schemas.authSignUpSchema), 
@@ -29,20 +48,14 @@ router.route('/auth/google')
   .post(passport.authenticate('google-plus-token', { session: false }), 
     UserController.authGoogle)
 
-router.route('/superAdmin')    // Route for superadmin
-  .get(passport.authenticate('jwt', { session: false}), 
-    UserController.getAllAdmin)
-  .post(validateBody(schemas.adminSchema), 
-    UserController.newAdmin)
-
 router.route('/:userID')  // Route for User
   .get(passport.authenticate('jwt', { session: false}),
     validateParam(schemas.idSchema, 'userID'), 
-    UserController.getUser)
+    UserController.getUserById)
   .patch(passport.authenticate('jwt', {session: false}),
     validateParam(schemas.idSchema, 'userID'), 
     validateBody(schemas.userOptionalSchema), 
-    UserController.updateUser)
+    UserController.updateUserById)
 
 
 // Export module

@@ -33,7 +33,13 @@ const getEvent = async (req, res, next) => {      // Get user by id (get)
 
   const event = await Event.findById(eventID)
 
-  return res.status(200).json({ event })
+  return res.status(201).json({ 
+    data: [
+      { data: event }
+    ], 
+    paganition: {},
+    message: "Sự kiện đã được tìm thấy thành công!" 
+  })
 }
 
 const updateEvent = async (req, res, next) => {   // Update event by id (patch)
@@ -43,7 +49,7 @@ const updateEvent = async (req, res, next) => {   // Update event by id (patch)
     const foundEvent = await Event.findById(eventID)
 
     if (!foundEvent) {
-      const error = new Error("Không thể tìm thấy người dùng!")
+      const error = new Error("Không thể tìm thấy sự kiện!")
       error.status = 404
       throw error 
     }
@@ -57,7 +63,7 @@ const updateEvent = async (req, res, next) => {   // Update event by id (patch)
         { data: newEvent }
       ], 
       paganition: {},
-      message: "Cập nhật thông tin người dùng thành công!" 
+      message: "Cập nhật thông tin sự kiện thành công!" 
     })
   } catch (error) {
     next(error)

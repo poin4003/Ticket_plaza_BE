@@ -61,15 +61,15 @@ const schemas = {
     password: Joi.string().min(6).required()
   }), 
 
-  adminSchema: Joi.object().keys({              // Validate schema for admin
+  userSchema: Joi.object().keys({       // Validate schema for admin (updating)
     fullName: Joi.string().min(2).required(),
     password: Joi.string().min(6).required(),
     email: Joi.string().min(2).required(),
     phone: Joi.string().max(10).min(10).required(),
     birthDay: Joi.string().required(),
-    type: Joi.number().min(1).max(1).required(),
-    identityID: Joi.string().min(12).max(12).required()
-  }),
+    type: Joi.number().min(0).max(2),
+    identityID: Joi.string().min(12).max(12)
+  }), 
 
   userOptionalSchema: Joi.object().keys({       // Validate schema for admin (updating)
     fullName: Joi.string().min(2),
@@ -77,7 +77,7 @@ const schemas = {
     email: Joi.string().min(2),
     phone: Joi.string().max(10).min(10),
     birthDay: Joi.string(),
-    type: Joi.number().min(1).max(1),
+    type: Joi.number().min(1).max(2),
     identityID: Joi.string().min(12).max(12)
   }), 
 
