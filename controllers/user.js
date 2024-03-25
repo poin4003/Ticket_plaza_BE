@@ -324,7 +324,7 @@ const updateUserById = async (req, res, next) => {   // Update user by id (patch
 
     return res.status(201).json({ 
       data: [
-        { data: user }
+        { data: newUser }
       ], 
       pagination: {},
       message: "Cập nhật thông tin người dùng thành công!" 
@@ -334,7 +334,7 @@ const updateUserById = async (req, res, next) => {   // Update user by id (patch
   }
 }
 
-const deactivateAcount = async (req, res, next) => {     // 
+const deactivateAccount = async (req, res, next) => {     // Deactivating account by id
   const { userID } = req.value.params
 
   try {
@@ -348,14 +348,42 @@ const deactivateAcount = async (req, res, next) => {     //
 
     const newUser = req.value.body
 
-    const deactivateUser = await User.findByIdAndUpdate(userID, { status: 0 })
+    const deactivateUser = await User.findByIdAndUpdate(userID, { status: 1 })
+
+    return res.status(201).json({ 
+      data: [
+        { data: { status: 1 } }
+      ], 
+      pagination: {},
+      message: "Khóa tài khoản thành công!" 
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+const activateAccount = async (req, res, next) => {     // Activating account by id
+  const { userID } = req.value.params
+
+  try {
+    const foundUser = await User.findById(userID)
+
+    if (!foundUser) {
+      const error = new Error("Không thể tìm thấy người dùng!")
+      error.status = 404
+      throw error
+    }
+
+    const newUser = req.value.body
+
+    const activateUser = await User.findByIdAndUpdate(userID, { status: 0 })
 
         return res.status(201).json({ 
       data: [
-        { data: newUser }
+        { data: { status: 0 } }
       ], 
       pagination: {},
-      message: "Vô hiệu hóa người dùng thành công!" 
+      message: "Mở khóa tài khoản thành công!" 
     })
   } catch (error) {
     next(error)
@@ -375,5 +403,6 @@ module.exports = {
   getUserById,
   createNewUser,
   updateUserById,
-  deactivateAcount
+  deactivateAccount,
+  activateAccount
 }

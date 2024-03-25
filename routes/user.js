@@ -35,6 +35,16 @@ router.route('/getUsersByIdentityID')
   .get(passport.authenticate('jwt', { session: false }),
     UserController.getUsersByIdentityId)
 
+router.route('/deactivateAccount/:userID')
+  .patch(passport.authenticate('jwt', { session: false }),
+    validateParam(schemas.idSchema, 'userID'),
+    UserController.deactivateAccount)
+
+router.route('/activateAccount/:userID')
+  .patch(passport.authenticate('jwt', { session: false }),
+    validateParam(schemas.idSchema, 'userID'),
+    UserController.activateAccount)
+
 router.route('/signup')  // Route for create account
   .post(validateBody(schemas.authSignUpSchema), 
     UserController.signUp)
