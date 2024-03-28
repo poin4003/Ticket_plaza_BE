@@ -106,7 +106,7 @@ const getUsers = async (req, res, next) => {     // Get a users list
 
     const users = await User.find(query).skip(skip).limit(limit).select("-password -authGoogleID")
 
-    if (!users) {
+    if (users.length === 0) {
       const error = new Error("Không thể tìm thấy tài khoản người dùng!")
       error.status = 404
       throw error 
@@ -150,7 +150,7 @@ const getUsersByName = async (req, res, next) => {    // Get a users list by nam
 
     const users = await User.find(query).skip(skip).limit(limit).select("-password -authGoogleID")
 
-    if (!users) {
+    if (users.length === 0) {
       const error = new Error("Không thể tìm thấy tài khoản người dùng!")
       error.status = 404
       throw error 
@@ -193,7 +193,7 @@ const getUsersByEmail = async (req, res, next) => {    // Get a users list by em
 
     const users = await User.find(query).skip(skip).limit(limit).select("-password -authGoogleID")
 
-    if (!users) {
+    if (users.length === 0) {
       const error = new Error("Không thể tìm thấy tài khoản người dùng!")
       error.status = 404
       throw error 
@@ -236,7 +236,7 @@ const getUsersByPhone = async (req, res, next) => {    // Get a users list by ph
 
     const users = await User.find(query).skip(skip).limit(limit).select("-password -authGoogleID")
 
-    if (!users) {
+    if (users.length === 0) {
       const error = new Error("Không thể tìm thấy tài khoản người dùng!")
       error.status = 404
       throw error 
@@ -279,7 +279,7 @@ const getUsersByIdentityId = async (req, res, next) => {    // Get a users list 
 
     const users = await User.find(query).skip(skip).limit(limit).select("-password -authGoogleID")
 
-    if (!users) {
+    if (users.length === 0) {
       const error = new Error("Không thể tìm thấy tài khoản người dùng!")
       error.status = 404
       throw error 

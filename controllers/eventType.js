@@ -17,7 +17,7 @@ const getListEventTypes = async (req, res, next) => {     // Get a eventType lis
 
     const eventTypes = await EventType.find(query).skip(skip).limit(limit)
 
-    if (!eventTypes) {
+    if (eventTypes.length === 0) {
       const error = new Error("Không thể tìm thấy kiểu sự kiện!")
       error.status = 404
       throw error 
