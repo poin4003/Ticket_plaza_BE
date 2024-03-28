@@ -89,7 +89,7 @@ const authGoogle = async (req, res, next) => {       // Login with google api
   })
 }
 
-// Controller for admin
+// Controller for user
 const getUsers = async (req, res, next) => {     // Get a users list
   let { page, limit, type, status } = req.query
   limit = parseInt(limit) || 10
@@ -105,6 +105,12 @@ const getUsers = async (req, res, next) => {     // Get a users list
     if (status !== undefined) query.status = status;
 
     const users = await User.find(query).skip(skip).limit(limit).select("-password -authGoogleID")
+
+    if (!users) {
+      const error = new Error("Không thể tìm thấy tài khoản người dùng!")
+      error.status = 404
+      throw error 
+    }
 
     const totalUsers = await User.countDocuments(query)
 
@@ -143,6 +149,13 @@ const getUsersByName = async (req, res, next) => {    // Get a users list by nam
     // console.log(query)
 
     const users = await User.find(query).skip(skip).limit(limit).select("-password -authGoogleID")
+
+    if (!users) {
+      const error = new Error("Không thể tìm thấy tài khoản người dùng!")
+      error.status = 404
+      throw error 
+    }
+
     const totalUsers = await User.countDocuments(query)
     const totalPages = Math.ceil(totalUsers / limit)
 
@@ -179,6 +192,13 @@ const getUsersByEmail = async (req, res, next) => {    // Get a users list by em
     // console.log(query)
 
     const users = await User.find(query).skip(skip).limit(limit).select("-password -authGoogleID")
+
+    if (!users) {
+      const error = new Error("Không thể tìm thấy tài khoản người dùng!")
+      error.status = 404
+      throw error 
+    }
+
     const totalUsers = await User.countDocuments(query)
     const totalPages = Math.ceil(totalUsers / limit)
 
@@ -212,9 +232,16 @@ const getUsersByPhone = async (req, res, next) => {    // Get a users list by ph
     if (phone) query = { phone: { $regex: phone } }
     if (status) query.status = status
     query.type = type
-    console.log(query)
+    // console.log(query)
 
     const users = await User.find(query).skip(skip).limit(limit).select("-password -authGoogleID")
+
+    if (!users) {
+      const error = new Error("Không thể tìm thấy tài khoản người dùng!")
+      error.status = 404
+      throw error 
+    }
+
     const totalUsers = await User.countDocuments(query)
     const totalPages = Math.ceil(totalUsers / limit)
 
@@ -248,9 +275,16 @@ const getUsersByIdentityId = async (req, res, next) => {    // Get a users list 
     if (identityID) query = { identityID: { $regex: identityID, $options: 'i'} }
     if (status) query.status = status
     query.type = type
-    console.log(query)
+    // console.log(query)
 
     const users = await User.find(query).skip(skip).limit(limit).select("-password -authGoogleID")
+
+    if (!users) {
+      const error = new Error("Không thể tìm thấy tài khoản người dùng!")
+      error.status = 404
+      throw error 
+    }
+
     const totalUsers = await User.countDocuments(query)
     const totalPages = Math.ceil(totalUsers / limit)
 
@@ -273,7 +307,7 @@ const getUsersByIdentityId = async (req, res, next) => {    // Get a users list 
 const createNewUser = async (req, res, next) => {   // Create user
   const newUser = new User(req.value.body)
 
-  console.log(newUser.type)
+  // console.log(newUser.type)
 
   if (newUser.type === undefined) newUser.type = 1;
 
@@ -295,15 +329,25 @@ const createNewUser = async (req, res, next) => {   // Create user
 const getUserById = async (req, res, next) => {      // Get user by id (get)
   const { userID } = req.value.params
 
-  const user = await User.findById(userID).select("-password -authGoogleID")
+  try {
+    const user = await User.findById(userID).select("-password -authGoogleID")
 
-  return res.status(201).json({ 
-    data: [
-      { data: user }
-    ], 
-    pagination: {},
-    message: "Tài khoản đã được tìm thấy!" 
-  })
+    if (!user) {
+      const error = new Error("Không thể tìm thấy tài khoản người dùng!")
+      error.status = 404
+      throw error
+    }
+
+    return res.status(201).json({ 
+      data: [
+        { data: user }
+      ], 
+      pagination: {},
+      message: "Tài khoản đã được tìm thấy!" 
+    })
+  } catch (error) {
+    next(error)
+  }
 }
 
 const updateUserById = async (req, res, next) => {   // Update user by id (patch)

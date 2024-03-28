@@ -107,6 +107,18 @@ const schemas = {
     date: Joi.string(),
     maxTicketPerBill: Joi.number()
   }),
+
+  eventTypeSchema: Joi.object().keys({                  // Validate schema for event type
+    typeId: Joi.string().min(2).required(),
+    eventTypeName: Joi.string().required(),
+    status: Joi.number()
+  }),
+
+  eventTypeOptionalSchema: Joi.object().keys({          // Validate schema for event type (updating)
+    typeId: Joi.string().min(2),
+    eventTypeName: Joi.string(),
+    status: Joi.number()
+  })
 }
 
 

@@ -20,12 +20,7 @@ const EventSchema = new Schema({
   },
   type: {
     type: String,
-    enum: ["music", "workshop", "concert", 
-      "exhibit", "art", "conference", 
-      "party", "sport", "festival", 
-      "charity", "education", "race", 
-      "non_profit", "orther"],
-    default: "orther"
+    default: "other"
   },
   place: {
     type: String,
