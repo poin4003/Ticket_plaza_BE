@@ -1,6 +1,10 @@
 // Import module for user route
 const express = require('express')                  // Module for Api handler
+const session = require('express-session')
 const router = require('express-promise-router')()  // Module for router
+
+// Import models
+const User = require('../models/User')
 
 // Import controllers
 const UserController = require('../controllers/user')  // User controller
@@ -11,6 +15,17 @@ const { validateBody, validateParam, schemas } = require('../helper/routerHelper
 // Import passport
 const passport = require('passport')
 const passportConfig = require('../middlewares/passport')
+
+// Config passport
+passport.serializeUser((user, done) => {
+  done(null, user.id);
+})
+
+passport.deserializeUser((id, done) => {
+  User.findById(id, (err, user) => {
+    done(err, user)
+  })
+})
 
 // Routes
 router.route('/')
@@ -55,8 +70,21 @@ router.route('/login')   // Route for login
     UserController.signIn)
 
 router.route('/auth/google')
-  .post(passport.authenticate('google-plus-token', { session: false }), 
-    UserController.authGoogle)
+  .get(passport.authenticate('google', { scope: ['email', 'profile'] }))
+
+router.route('/auth/google/callback')
+  .get(passport.authenticate('google', { failureRedirect: '/login' }),
+  UserController.authGoogle)
+
+router.route('/logout')
+  .get((req, res) => {
+    req.logout(() => {
+      req.session.destroy(() => {
+        res.send('Goodbye!')
+      })
+    })
+  })
+
 
 router.route('/:userID')  // Route for User
   .get(passport.authenticate('jwt', { session: false}),

@@ -3,6 +3,8 @@ require('dotenv').config()    // Module for config environment
 
 // Import modules for product
 const express = require('express')         // Module for Api handler
+const session = require('express-session')
+const passport = require('passport')
 const logger = require('morgan')           // Module for logger
 const mongoClient = require('mongoose')    // Module for database
 const bodyParser = require('body-parser')  // Module for body handler
@@ -13,6 +15,8 @@ const cors = require('cors')               // Module for CORS
 const usersRoute = require('./routes/user')          // Import user's route configs
 const eventRoute = require('./routes/event')         // Import event's route configs
 const eventTypeRoute = require('./routes/eventType') // Import eventType's route configs
+
+const passportauth = require('./middlewares/passport')
 
 // Setup connect mongodb by mongoose
 const dbUrl = `mongodb+srv://PcHuy:ctjerXC3Id87y0oH@cluster0.idi4juk.mongodb.net/TicketPlaza?retryWrites=true&w=majority&appName=Cluster0`;
@@ -27,6 +31,11 @@ mongoClient.connect(dbUrl).then(() => {
 const app = express()
 app.use(secureApp())    // Update security option for express
 
+app.use(session({ secret: "cats "}))
+app.use(passport.initialize())
+app.use(passport.session())
+
+
 // Middlewares
 app.use(logger('dev'))
 app.use(bodyParser.json())
@@ -34,9 +43,10 @@ app.use(cors())
 
 // Routes
 app.get('/', (req, res, next) => {  // Test route
-  return res.status(200).json({
-    message: 'Server is OK!'
-  })
+  // return res.status(200).json({
+  //   message: 'Server is OK!'
+  // })
+  res.send('<a href="users/auth/google">Authenticate with Google</a>')
 })
 
 app.use('/users', usersRoute)           // Navigate to usersRoute

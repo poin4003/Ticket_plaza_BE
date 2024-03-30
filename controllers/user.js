@@ -72,21 +72,33 @@ const signUp = async (req, res, next) => {           // SignUp (post)
 }
 
 const authGoogle = async (req, res, next) => {       // Login with google api
-  console.log(req.value)
-  const token = encodedToken(req.user._id)
-  const user = req.user.toObject()
-  delete user.password
-  res.setHeader('Authorization', token)
-  return res.status(200).json({
-    data: [
-      { 
+  try {
+    let user = await User.findOne({ authGoogleID: req.user.id, authType: "google" })
+
+    if (!user) {
+      user = new User({
+        type: 0,
+        authType: 'google',
+        authGoogleID: req.user.id,
+        email: req.user.emails[0].value,
+        fullName: req.user.displayName
+      })
+      await user.save()
+    }
+
+    const token = encodedToken(user._id);
+    res.setHeader('Authorization', token)
+    return res.status(201).json({
+      data: [{
         data: user,
         token: token
-      }
-    ], 
-    pagination: {}, 
-    message: "Đăng nhập với Google OAuth thành công!" 
-  })
+      }],
+      pagination: {},
+      message: "Đăng nhập với Google thành công!"
+    })
+  } catch (error) {
+    next(error)
+  }
 }
 
 // Controller for user

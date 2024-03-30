@@ -2,7 +2,7 @@
 const passport = require('passport')
 const JwtStrategy = require('passport-jwt').Strategy
 const LocalStrategy = require('passport-local').Strategy
-const GooglePlusTokenStrategy = require('passport-google-plus-token')
+const GoogleStrategy = require('passport-google-oauth2').Strategy
 const { ExtractJwt } = require('passport-jwt')
 
 // Import configs setup
@@ -28,36 +28,16 @@ passport.use(new JwtStrategy({
   }
 }))
 
-// Passport Google
-passport.use(new GooglePlusTokenStrategy({
+passport.use(new GoogleStrategy({
   clientID: auth.google.CLIENT_ID,
-  clientSecret: auth.google.CLIENT_SECRET
-}, async (accessToken, refreshToken, profile, done) => {
-  try {
-    // Check wether this current user exists in out database
-    const founduser = await User.findOne({
-      authGoogleID: profile.id,
-      authType: "google"
-    })
-
-    if (founduser) return done(null, founduser)
-    // console.log(profile)
-
-    // If new account
-    const newUser = new User({
-      type: 0,
-      authType: 'google',
-      authGoogleID: profile.id,
-      email: profile.emails[0].value,
-      fullName: profile.name.givenName + " " + profile.name.familyName
-    })
-
-    await newUser.save()
-
-    done(null, newUser)
-  } catch (error) {
-    done({ code: error.code, message: error.message }, false)
-  }
+  clientSecret: auth.google.CLIENT_SECRET, 
+  callbackURL: "http://localhost:8000/users/auth/google/callback",
+  passReqToCallback: true
+}, (request, accessToken, refreshToken, profile, done) => {
+  // console.log("CLIENT_ID:", auth.google.CLIENT_ID)
+  // console.log("CLIENT_SECRET:" ,auth.google.CLIENT_SECRET)
+  // console.log(profile)
+  done(null, profile)
 }))
 
 // Passport Local
