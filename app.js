@@ -3,8 +3,8 @@ require('dotenv').config()    // Module for config environment
 
 // Import modules for product
 const express = require('express')         // Module for Api handler
-const session = require('express-session')
-const passport = require('passport')
+const session = require('express-session') // Module for Api handler
+const passport = require('passport')       // Module for Authenticate handler
 const logger = require('morgan')           // Module for logger
 const mongoClient = require('mongoose')    // Module for database
 const bodyParser = require('body-parser')  // Module for body handler
@@ -35,7 +35,6 @@ app.use(session({ secret: "cats "}))
 app.use(passport.initialize())
 app.use(passport.session())
 
-
 // Middlewares
 app.use(logger('dev'))
 app.use(bodyParser.json())
@@ -43,10 +42,10 @@ app.use(cors())
 
 // Routes
 app.get('/', (req, res, next) => {  // Test route
-  // return res.status(200).json({
-  //   message: 'Server is OK!'
-  // })
-  res.send('<a href="users/auth/google">Authenticate with Google</a>')
+  return res.status(200).json({
+    message: 'Server is OK!'
+  })
+  //res.send('<a href="users/auth/google">Authenticate with Google</a>')
 })
 
 app.use('/users', usersRoute)           // Navigate to usersRoute

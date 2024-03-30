@@ -1,7 +1,8 @@
 // Import module for user route
 const express = require('express')                  // Module for Api handler
-const session = require('express-session')
+const session = require('express-session')          // Module for Authenticate session
 const router = require('express-promise-router')()  // Module for router
+const mongoose = require('mongoose')                // Module for Mongodb database
 
 // Import models
 const User = require('../models/User')
@@ -21,11 +22,15 @@ passport.serializeUser((user, done) => {
   done(null, user.id);
 })
 
-passport.deserializeUser((id, done) => {
-  User.findById(id, (err, user) => {
-    done(err, user)
-  })
-})
+passport.deserializeUser(async (id, done) => {
+  try {
+    // console.log(id)
+    const user = await User.find({ authGoogleID: id });
+    done(null, user);
+  } catch (error) {
+    done(error, null);
+  }
+});
 
 // Routes
 router.route('/')
@@ -84,7 +89,6 @@ router.route('/logout')
       })
     })
   })
-
 
 router.route('/:userID')  // Route for User
   .get(passport.authenticate('jwt', { session: false}),
