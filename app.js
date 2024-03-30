@@ -38,7 +38,13 @@ app.use(passport.session())
 // Middlewares
 app.use(logger('dev'))
 app.use(bodyParser.json())
-app.use(cors())
+
+const corsOption = {
+  origin: 'http://localhost:3000',
+  optionsSuccessStatus: 200
+}
+
+app.use(cors(corsOption))
 
 // Routes
 app.get('/', (req, res, next) => {  // Test route
