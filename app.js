@@ -2,21 +2,20 @@
 require('dotenv').config()    // Module for config environment
 
 // Import modules for product
-const express = require('express')         // Module for Api handler
-const session = require('express-session') // Module for Api handler
-const passport = require('passport')       // Module for Authenticate handler
-const logger = require('morgan')           // Module for logger
-const mongoClient = require('mongoose')    // Module for database
-const bodyParser = require('body-parser')  // Module for body handler
-const secureApp = require('helmet')        // Module for security
-const cors = require('cors')               // Module for CORS
+const express = require('express')              // Module for Api handler
+const logger = require('morgan')                // Module for logger
+const session = require("express-session")      // Module for session handler
+const passport = require("passport")            // Module for authenticate supporter
+const mongoClient = require('mongoose')         // Module for database
+const bodyParser = require('body-parser')       // Module for body handler
+const secureApp = require('helmet')             // Module for security
+const cors = require('cors')                    // Module for CORS
 
 // Import environment files
-const usersRoute = require('./routes/user')          // Import user's route configs
-const eventRoute = require('./routes/event')         // Import event's route configs
-const eventTypeRoute = require('./routes/eventType') // Import eventType's route configs
-
-const passportauth = require('./middlewares/passport')
+const usersRoute = require('./routes/user')            // Import user's route configs
+const eventRoute = require('./routes/event')           // Import event's route configs
+const eventTypeRoute = require('./routes/eventType')   // Import eventType's route configs
+const passportSetup = require("./middlewares/passport")// Import passport setup file
 
 // Setup connect mongodb by mongoose
 const dbUrl = `mongodb+srv://PcHuy:ctjerXC3Id87y0oH@cluster0.idi4juk.mongodb.net/TicketPlaza?retryWrites=true&w=majority&appName=Cluster0`;
@@ -31,20 +30,27 @@ mongoClient.connect(dbUrl).then(() => {
 const app = express()
 app.use(secureApp())    // Update security option for express
 
-app.use(session({ secret: "cats "}))
-app.use(passport.initialize())
-app.use(passport.session())
+const sessionMiddleware = session({
+  secret: 'secret', // Change this to a more secure secret
+  resave: false,
+  saveUninitialized: true,
+  cookie: {
+    secure: false, // Set to true if your server is using HTTPS
+    maxAge: 24 * 60 * 60 * 1000 // Corrected maxAge value (in milliseconds)
+  }
+});
+app.use(sessionMiddleware);
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Middlewares
 app.use(logger('dev'))
 app.use(bodyParser.json())
-
-const corsOption = {
-  origin: 'http://localhost:3000',
-  optionsSuccessStatus: 200
-}
-
-app.use(cors(corsOption))
+app.use(cors({
+  origin: "http://localhost:3000",
+  methods: "GET,POST,PUT,DELETE,PATCH",
+  credentials: true
+}))
 
 // Routes
 app.get('/', (req, res, next) => {  // Test route

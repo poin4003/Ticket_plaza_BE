@@ -1,8 +1,9 @@
 // Import module for user route
 const express = require('express')                  // Module for Api handler
-const session = require('express-session')          // Module for Authenticate session
+const passport = require('passport')                // Module for authenticate supporter
 const router = require('express-promise-router')()  // Module for router
 const mongoose = require('mongoose')                // Module for Mongodb database
+const { JWT_SECRET, auth } = require('../configs')
 
 // Import models
 const User = require('../models/User')
@@ -12,25 +13,6 @@ const UserController = require('../controllers/user')  // User controller
 
 // Import helper
 const { validateBody, validateParam, schemas } = require('../helper/routerHelper')
-
-// Import passport
-const passport = require('passport')
-const passportConfig = require('../middlewares/passport')
-
-// Config passport
-passport.serializeUser((user, done) => {
-  done(null, user.id);
-})
-
-passport.deserializeUser(async (id, done) => {
-  try {
-    // console.log(id)
-    const user = await User.find({ authGoogleID: id });
-    done(null, user);
-  } catch (error) {
-    done(error, null);
-  }
-});
 
 // Routes
 router.route('/')
@@ -74,22 +56,6 @@ router.route('/login')   // Route for login
     validateBody(schemas.authSignInSchema), 
     UserController.signIn)
 
-router.route('/auth/google')
-  .get(passport.authenticate('google', { scope: ['email', 'profile'] }))
-
-router.route('/auth/google/callback')
-  .get(passport.authenticate('google', { failureRedirect: '/login' }),
-  UserController.authGoogle)
-
-router.route('/logout')
-  .get((req, res) => {
-    req.logout(() => {
-      req.session.destroy(() => {
-        res.send('Goodbye!')
-      })
-    })
-  })
-
 router.route('/:userID')  // Route for User
   .get(passport.authenticate('jwt', { session: false}),
     validateParam(schemas.idSchema, 'userID'), 
@@ -98,7 +64,12 @@ router.route('/:userID')  // Route for User
     validateParam(schemas.idSchema, 'userID'), 
     validateBody(schemas.userOptionalSchema), 
     UserController.updateUserById)
+  
+router.route('/auth/google')
+  .get(passport.authenticate('google', { scope: ["profile"] }))
 
+router.route('/auth/google/callback')
+  .get(passport.authenticate('google'), UserController.authGoogle);
 
 // Export module
 module.exports = router

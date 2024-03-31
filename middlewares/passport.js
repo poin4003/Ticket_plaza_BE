@@ -28,15 +28,27 @@ passport.use(new JwtStrategy({
   }
 }))
 
+// Config passport
+passport.serializeUser((user, done) => {
+  done(null, user.id);
+})
+
+passport.deserializeUser(async (id, done) => {
+  try {
+    // console.log(id)
+    const user = await User.find({ authGoogleID: id });
+    done(null, user);
+  } catch (error) {
+    done(error, null);
+  }
+});
+
 passport.use(new GoogleStrategy({
   clientID: auth.google.CLIENT_ID,
   clientSecret: auth.google.CLIENT_SECRET, 
   callbackURL: "http://localhost:8000/users/auth/google/callback",
   passReqToCallback: true
 }, (request, accessToken, refreshToken, profile, done) => {
-  // console.log("CLIENT_ID:", auth.google.CLIENT_ID)
-  // console.log("CLIENT_SECRET:" ,auth.google.CLIENT_SECRET)
-  // console.log(profile)
   done(null, profile)
 }))
 
