@@ -88,15 +88,16 @@ const authGoogle = async (req, res, next) => {       // Login with google api
 
     const token = encodedToken(user._id);
     res.setHeader('Authorization', token)
-    res.redirect('http://localhost:3000/')
-    return res.status(201).json({
+    const data = {
       data: [{
         data: user,
         token: token
       }],
       pagination: {},
       message: "Đăng nhập với Google thành công!"
-    })
+    }
+    
+    res.redirect(`http://localhost:3000/login?data=${encodeURIComponent(JSON.stringify(data))}`);
   } catch (error) {
     next(error)
   }
