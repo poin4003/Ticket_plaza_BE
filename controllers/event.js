@@ -2,7 +2,7 @@
 const Event = require('../models/Event')
 
 // Controller for event
-const newEvent = async (req, res, next) => {   // Create new Event
+const createNewEvent = async (req, res, next) => {   // Create new Event
   const newEvent = new Event(req.body)
 
   await newEvent.save()
@@ -16,33 +16,112 @@ const newEvent = async (req, res, next) => {   // Create new Event
   })
 }
 
-const getAllEvent = async (req, res, next) => {      // Get all events
-  const event = await Event.find({})
+const getListEvents = async (req, res, next) => {      // Get list event
+  let { page, limit, status } = req.query
+  limit = parseInt(limit) || 8
+  page = parseInt(page) || 1
+  if (!status) status = undefined
 
-  return res.status(201).json({ 
-    data: [
-      { data: event }
-    ], 
-    paganition: {},
-    message: "Toàn bộ sự kiện đã được tìm thấy thành công!" 
-  })
+  const skip = (page - 1) * limit;
+
+  try {
+    let query = {}
+
+    if (status !== undefined) query.status = status;
+
+    const events = await Event.find(query).skip(skip).limit(limit)
+
+    if (events.length === 0) {
+      const error = new Error("Không thể tìm thấy sự kiện!")
+      error.status = 404
+      throw error 
+    }
+
+    const totalEvents = await Event.countDocuments(query)
+
+    const totalPages = Math.ceil(totalEvents / limit)
+
+    return res.status(201).json({ 
+      data: [
+        { data: events }
+      ], 
+      pagination: {
+        totalItems: totalEvents,
+        currentPage: page,
+        totalPages: totalPages
+      },
+      message: `${totalEvents} kiểu sự kiện đã được tìm thấy!` 
+    })
+  } catch (error) {
+    next(error)
+  }
 }
 
-const getEvent = async (req, res, next) => {      // Get user by id (get)
+const getListEventsByHost = async (req, res, next) => {
+
+}
+
+const getListEventsByMember = async (req, res, next) => {
+
+}
+
+const getListEventsByHostAndMember = async (req, res, next) => {
+
+}
+
+const getListEventsByType = async (req, res, next) => {
+
+}
+
+const getListEventsByPlace = async (req, res, next) => {
+
+}
+
+const getListEventsByTime = async (req, res, next) => {
+
+}
+
+const getListEventsByDate = async (req, res, next) => {
+
+}
+
+const getListEventsByTimeAndDate = async (req, res, next) => {
+
+}
+
+const deactivateEvent = async (req, res, next) => {
+
+}
+
+const activateEvent = async (req, res, next) => {
+
+}
+
+const getEventById = async (req, res, next) => {      // Get user by id (get)
   const { eventID } = req.value.params
 
-  const event = await Event.findById(eventID)
+  try {
+    const event = await Event.findById(eventID)
 
-  return res.status(201).json({ 
-    data: [
-      { data: event }
-    ], 
-    paganition: {},
-    message: "Sự kiện đã được tìm thấy thành công!" 
-  })
+    if (!event) {
+      const error = new Error("Không thể tìm thấy sự kiện!")
+      error.status = 404
+      throw error
+    }
+
+    return res.status(201).json({ 
+      data: [
+        { data: event }
+      ], 
+      pagination: {},
+      message: "Sự kiện đã được tìm thấy!" 
+    })
+  } catch (error) {
+    next(error)
+  }
 }
 
-const updateEvent = async (req, res, next) => {   // Update event by id (patch)
+const updateEventById = async (req, res, next) => {   // Update event by id (patch)
   const { eventID } = req.value.params
 
   try {
@@ -72,8 +151,19 @@ const updateEvent = async (req, res, next) => {   // Update event by id (patch)
 
 // Export controllers
 module.exports = {
-  newEvent, 
-  getAllEvent,
-  getEvent,
-  updateEvent
+  getListEvents, 
+  getListEventsByHost,
+  getListEventsByMember,
+  getListEventsByHostAndMember,
+  getListEventsByType,
+  getListEventsByPlace,
+  getListEventsByTime,
+  getListEventsByDate,
+  getListEventsByTimeAndDate,
+  getEventById,
+  createNewEvent,
+  getEventById,
+  updateEventById,
+  deactivateEvent,
+  activateEvent
 }

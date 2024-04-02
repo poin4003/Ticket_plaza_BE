@@ -39,6 +39,7 @@ const sessionMiddleware = session({
     maxAge: 24 * 60 * 60 * 1000 // Corrected maxAge value (in milliseconds)
   }
 });
+
 app.use(sessionMiddleware);
 app.use(passport.initialize());
 app.use(passport.session());
@@ -46,9 +47,10 @@ app.use(passport.session());
 // Middlewares
 app.use(logger('dev'))
 app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({ extended: true }))
 app.use(cors({
   origin: "http://localhost:3000",
-  methods: "GET,POST,PUT,DELETE,PATCH",
+  methods: "GET,POST,PUT,DELETE",
   credentials: true
 }))
 
