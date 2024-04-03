@@ -1,6 +1,8 @@
 // Import module for user controller
+const nodemailer = require('nodemailer')
 const User = require('../models/User')
 const JWT = require('jsonwebtoken')
+const redis = require('redis')
 
 // Config JsonWebToken
 const { JWT_SECRET } = require('../configs')
@@ -13,6 +15,21 @@ const encodedToken = (userID) => {
     exp: new Date().setDate(new Date().getDate() + 100)
   }, JWT_SECRET)
 }
+
+// Nodemailer transporter configs
+const transporter = nodemailer.createTransport({
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true,
+  service: 'gmail',
+  auth: {
+    user: 'pchuy4003@gmail.com',
+    pass: 'nvidiageforce940mx'
+  }
+})
+
+// Redis databases configs
+const client = redis.createClient();
 
 // Controller for Authentication
 const signIn = async (req, res, next) => {           // LogIn (post)
@@ -88,6 +105,15 @@ const authGoogle = async (req, res, next) => {       // Login with google api
 
     const token = encodedToken(user._id);
     res.setHeader('Authorization', token)
+    // res.status(201).json({
+    //   data: [{
+    //     data: user,
+    //     token: token
+    //   }],
+    //   pagination: {},
+    //   message: "Đăng nhập với Google thành công!"
+    // })
+
     const data = {
       data: [{
         data: user,
@@ -103,20 +129,87 @@ const authGoogle = async (req, res, next) => {       // Login with google api
   }
 }
 
+const forgotPassword = async (req, res, next) => {
+  const { email } = req.body;
+
+  try {
+    let query = {};
+    if (email) query = { email: { $regex: email, $options: 'i'} };
+
+    const user = await User.findOne(query);
+
+    if (!user) {
+      const error = new Error("Không thể tìm thấy email!");
+      error.status = 404;
+      throw error;
+    }
+
+    const OTP = Math.floor(1000 + Math.random() * 9000);
+
+    const mailOptions = {
+      from: 'pchuy4003@gmail.com',
+      to: email,
+      subject: 'OTP for password reset',
+      text: `Your OTP is: ${OTP}`
+    };
+
+    await transporter.sendMail(mailOptions);
+    return res.status(201).json({ 
+      data: { 
+        user,
+        status: true
+      },
+      message: 'Đã gửi email!'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const verifyOTP = async (req, res, next) => {
+  const { email, otp } = req.body;
+
+  try {
+    await client.connect()
+    const storedOTP = await client.get(email)
+
+    if (storedOTP === otp) {
+      client.del(email);
+      res.status(201).json({ 
+        data: [
+          { 
+            data: users,
+            status: true
+          }
+        ], 
+        pagination: {},
+        message: 'Xác thực người OPT thành công!'
+      });
+    } else {
+      const error = new Error("Lỗi trong quá trình xác thực OPT!");
+      error.status = 500;
+      throw error;
+    }
+  } catch (error) {
+    next(error);
+  }
+}
+
+
 // Controller for user
 const getUsers = async (req, res, next) => {     // Get a users list
   let { page, limit, type, status } = req.query
   limit = parseInt(limit) || 10
   page = parseInt(page) || 1
-  if (!type) type = 1
   if (!status) status = undefined
 
   const skip = (page - 1) * limit;
 
   try {
-    let query = { type: type }
+    let query = { }
 
     if (status !== undefined) query.status = status;
+    if (type) query.type = { $in: [parseInt(type)] }
 
     const users = await User.find(query).skip(skip).limit(limit).select("-password -authGoogleID")
 
@@ -150,16 +243,17 @@ const getUsersByName = async (req, res, next) => {    // Get a users list by nam
   let { page, limit, type, status, keyword } = req.query
   page = parseInt(page) || 1
   limit = parseInt(limit) || 10
-  if (!type) type = 1
   if (!status) status = undefined
 
   const skip = (page - 1) * limit
 
   try {
     let query = {};
-    if (keyword) query = { fullName: { $regex: keyword, $options: 'i'} }
+    if (keyword) query = { fullName: { $regex: new RegExp(keyword, 'i') } }
+    
     if (status) query.status = status
-    query.type = type
+    if (type) query.type = { $in: [parseInt(type)] }
+    // console.log(keyword)
     // console.log(query)
 
     const users = await User.find(query).skip(skip).limit(limit).select("-password -authGoogleID")
@@ -193,16 +287,15 @@ const getUsersByEmail = async (req, res, next) => {    // Get a users list by em
   let { page, limit, type, status, email } = req.query
   page = parseInt(page) || 1
   limit = parseInt(limit) || 10
-  if (!type) type = 1
   if (!status) status = undefined
-
+  
   const skip = (page - 1) * limit
 
   try {
     let query = {};
     if (email) query = { email: { $regex: email, $options: 'i'} }
     if (status) query.status = status
-    query.type = type
+    if (type) query.type = { $in: [parseInt(type)] }
     // console.log(query)
 
     const users = await User.find(query).skip(skip).limit(limit).select("-password -authGoogleID")
@@ -236,7 +329,6 @@ const getUsersByPhone = async (req, res, next) => {    // Get a users list by ph
   let { page, limit, type, status, phone } = req.query
   page = parseInt(page) || 1
   limit = parseInt(limit) || 10
-  if (!type) type = 1
   if (!status) status = undefined
 
   const skip = (page - 1) * limit
@@ -245,7 +337,7 @@ const getUsersByPhone = async (req, res, next) => {    // Get a users list by ph
     let query = {};
     if (phone) query = { phone: { $regex: phone } }
     if (status) query.status = status
-    query.type = type
+    if (type) query.type = { $in: [parseInt(type)] }
     // console.log(query)
 
     const users = await User.find(query).skip(skip).limit(limit).select("-password -authGoogleID")
@@ -279,7 +371,6 @@ const getUsersByIdentityId = async (req, res, next) => {    // Get a users list 
   let { page, limit, type, status, identityID } = req.query
   page = parseInt(page) || 1
   limit = parseInt(limit) || 10
-  if (!type) type = 1
   if (!status) status = undefined
 
   const skip = (page - 1) * limit
@@ -288,7 +379,7 @@ const getUsersByIdentityId = async (req, res, next) => {    // Get a users list 
     let query = {};
     if (identityID) query = { identityID: { $regex: identityID, $options: 'i'} }
     if (status) query.status = status
-    query.type = type
+    if (type) query.type = { $in: [parseInt(type)] }
     // console.log(query)
 
     const users = await User.find(query).skip(skip).limit(limit).select("-password -authGoogleID")
@@ -392,7 +483,7 @@ const updateUserById = async (req, res, next) => {   // Update user by id (patch
   }
 }
 
-const deactivateAccount = async (req, res, next) => {     // Deactivating account by id
+const deactivateAccountById = async (req, res, next) => {     // Deactivating account by id
   const { userID } = req.value.params
 
   try {
@@ -404,9 +495,8 @@ const deactivateAccount = async (req, res, next) => {     // Deactivating accoun
       throw error
     }
 
-    const newUser = req.value.body
-
-    const deactivateUser = await User.findByIdAndUpdate(userID, { status: 1 })
+    foundUser.status = 1
+    await foundUser.save()
 
     return res.status(201).json({ 
       data: [
@@ -420,7 +510,34 @@ const deactivateAccount = async (req, res, next) => {     // Deactivating accoun
   }
 }
 
-const activateAccount = async (req, res, next) => {     // Activating account by id
+const deactivateAccountByEmail = async (req, res, next) => {     // Deactivating account by id
+  const { email } = req.query
+
+  try {
+    const foundUser = await User.findOne({ email: email })
+
+    if (!foundUser) {
+      const error = new Error("Không thể tìm thấy người dùng!")
+      error.status = 404
+      throw error
+    }
+    
+    foundUser.status = 1
+    await foundUser.save()
+
+    return res.status(201).json({ 
+      data: [
+        { data: { status: 1 } }
+      ], 
+      pagination: {},
+      message: "Khóa tài khoản thành công!" 
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+const activateAccountById = async (req, res, next) => {     // Activating account by id
   const { userID } = req.value.params
 
   try {
@@ -432,11 +549,37 @@ const activateAccount = async (req, res, next) => {     // Activating account by
       throw error
     }
 
-    const newUser = req.value.body
+    foundUser.status = 0
+    await foundUser.save()
 
-    const activateUser = await User.findByIdAndUpdate(userID, { status: 0 })
+    return res.status(201).json({ 
+      data: [
+        { data: { status: 0 } }
+      ], 
+      pagination: {},
+      message: "Mở khóa tài khoản thành công!" 
+    })
+  } catch (error) {
+    next(error)
+  }
+}
 
-        return res.status(201).json({ 
+const activateAccountByEmail = async (req, res, next) => {     // Activating account by id
+  const { email } = req.query
+
+  try {
+    const foundUser = await User.findOne({ email: email })
+
+    if (!foundUser) {
+      const error = new Error("Không thể tìm thấy người dùng!")
+      error.status = 404
+      throw error
+    }
+    
+    foundUser.status = 0
+    await foundUser.save()
+
+    return res.status(201).json({ 
       data: [
         { data: { status: 0 } }
       ], 
@@ -453,6 +596,8 @@ module.exports = {
   signIn,
   signUp,
   authGoogle,
+  forgotPassword,
+  verifyOTP,
   getUsers,
   getUsersByName,
   getUsersByEmail,
@@ -461,6 +606,8 @@ module.exports = {
   getUserById,
   createNewUser,
   updateUserById,
-  deactivateAccount,
-  activateAccount
+  deactivateAccountById,
+  deactivateAccountByEmail,
+  activateAccountById,
+  activateAccountByEmail
 }

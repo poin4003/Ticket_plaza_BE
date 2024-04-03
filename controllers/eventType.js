@@ -184,9 +184,8 @@ const activateEventType = async (req, res, next) => {     // Activating eventype
       throw error
     }
 
-    const activateEventType = await EventType.updateOne(
-      { _id: foundEventType._id }, 
-      { status: 0 })
+    foundEventType.status = 0
+    await foundEventType.save()
 
     return res.status(201).json({ 
       data: [
@@ -215,9 +214,8 @@ const deavtivateEventType = async (req, res, next) => {     // Deactivating even
       throw error
     }
 
-    const activateEventType = await EventType.updateOne(
-      { _id: foundEventType._id }, 
-      { status: 1 })
+    foundEventType.status = 1
+    await foundEventType.save()
 
     return res.status(201).json({ 
       data: [

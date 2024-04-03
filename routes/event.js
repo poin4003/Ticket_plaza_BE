@@ -13,22 +13,40 @@ const passport = require('passport')
 const passportConfig = require('../middlewares/passport')
 
 // Routes
-router.route('/eventFunction')
+router.route('/')
   .get(passport.authenticate('jwt', { session: false }), 
-    EventController.getAllEvent)
+    EventController.getListEvents)
   .post(passport.authenticate('jwt', { session: false }),  
     validateBody(schemas.eventSchema), 
-    EventController.newEvent)
+    EventController.createNewEvent)
 
-
-router.route('/:eventID')  // Route for event with id
+router.route('/getEventById/:eventID')  // Route for event with id
   .get(passport.authenticate('jwt', { session: false }), 
     validateParam(schemas.idSchema, 'eventID'), 
-    EventController.getEvent)
+    EventController.getEventById)
+
+router.route('/getListEventsByName')
+  .get(passport.authenticate('jwt', { session: false }),
+  EventController.getListEventsByName)
+
+router.route('/getListEventsByHost')
+  .get(passport.authenticate('jwt', { session: false }),
+  EventController.getListEventsByHost)
+
+router.route('/getListEventsByMember')
+  .get(passport.authenticate('jwt', { session: false }),
+  EventController.getListEventsByMember)
+
+router.route('/getListEventsByHostOrMember')
+  .get(passport.authenticate('jwt', { session: false }),
+  EventController.getListEventsByHostOrMember)
+
+router.route('/udpateEventById/:eventID')
   .patch(passport.authenticate('jwt', {session: false }), 
     validateParam(schemas.idSchema, 'eventID'), 
     validateBody(schemas.eventOptionalSchema), 
-    EventController.updateEvent)
+    EventController.updateEventById)
+
 
 
 // Export module

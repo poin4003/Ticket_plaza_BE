@@ -21,6 +21,17 @@ router.route('/')
   .post(validateBody(schemas.userSchema), 
     UserController.createNewUser)
 
+router.route('/getUserById/:userID')  // Route for User
+  .get(passport.authenticate('jwt', { session: false}),
+    validateParam(schemas.idSchema, 'userID'), 
+    UserController.getUserById)
+
+router.route('/updateUserById/:userID')
+  .patch(passport.authenticate('jwt', {session: false}),
+    validateParam(schemas.idSchema, 'userID'), 
+    validateBody(schemas.userOptionalSchema), 
+    UserController.updateUserById)
+
 router.route('/getUsersByName')
   .get(passport.authenticate('jwt', { session: false }),
     UserController.getUsersByName)
@@ -37,15 +48,25 @@ router.route('/getUsersByIdentityID')
   .get(passport.authenticate('jwt', { session: false }),
     UserController.getUsersByIdentityId)
 
-router.route('/deactivateAccount/:userID')
+router.route('/deactivateAccountById/:userID')
   .patch(passport.authenticate('jwt', { session: false }),
     validateParam(schemas.idSchema, 'userID'),
-    UserController.deactivateAccount)
+    UserController.deactivateAccountById)
 
-router.route('/activateAccount/:userID')
+router.route('/activateAccountById/:userID')
   .patch(passport.authenticate('jwt', { session: false }),
     validateParam(schemas.idSchema, 'userID'),
-    UserController.activateAccount)
+    UserController.activateAccountById)
+
+router.route('/deactivateAccountByEmail')
+  .patch(passport.authenticate('jwt', { session: false }),
+    validateBody(schemas.userOptionalSchema, { session: false }),
+    UserController.deactivateAccountByEmail)
+
+router.route('/activateAccountByEmail')
+  .patch(passport.authenticate('jwt', { session: false }),
+    validateBody(schemas.userOptionalSchema, { session: false }),
+    UserController.activateAccountByEmail)
 
 router.route('/signup')  // Route for create account
   .post(validateBody(schemas.authSignUpSchema), 
@@ -56,20 +77,17 @@ router.route('/login')   // Route for login
     validateBody(schemas.authSignInSchema), 
     UserController.signIn)
 
-router.route('/:userID')  // Route for User
-  .get(passport.authenticate('jwt', { session: false}),
-    validateParam(schemas.idSchema, 'userID'), 
-    UserController.getUserById)
-  .patch(passport.authenticate('jwt', {session: false}),
-    validateParam(schemas.idSchema, 'userID'), 
-    validateBody(schemas.userOptionalSchema), 
-    UserController.updateUserById)
+router.route('/forgotPassword')
+  .post(UserController.forgotPassword)
+
+router.route('/verifyOTP')
+  .post(UserController.verifyOTP)
   
 router.route('/auth/google')
   .get(passport.authenticate('google', { scope: ["profile"] }))
 
 router.route('/auth/google/callback')
-  .get(passport.authenticate('google', { failureRedirect: 'http://localhost:3000/login' }), UserController.authGoogle);
+  .get(passport.authenticate('google', {failureRedirect: 'http://locachost:3000/login'}), UserController.authGoogle);
 
 // Export module
 module.exports = router
