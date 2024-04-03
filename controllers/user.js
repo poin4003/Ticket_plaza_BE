@@ -201,15 +201,15 @@ const getUsers = async (req, res, next) => {     // Get a users list
   let { page, limit, type, status } = req.query
   limit = parseInt(limit) || 10
   page = parseInt(page) || 1
-  if (!type) type = 1
   if (!status) status = undefined
 
   const skip = (page - 1) * limit;
 
   try {
-    let query = { type: type }
+    let query = { }
 
     if (status !== undefined) query.status = status;
+    if (type) query.type = { $in: [parseInt(type)] }
 
     const users = await User.find(query).skip(skip).limit(limit).select("-password -authGoogleID")
 
@@ -243,16 +243,17 @@ const getUsersByName = async (req, res, next) => {    // Get a users list by nam
   let { page, limit, type, status, keyword } = req.query
   page = parseInt(page) || 1
   limit = parseInt(limit) || 10
-  if (!type) type = 1
   if (!status) status = undefined
 
   const skip = (page - 1) * limit
 
   try {
     let query = {};
-    if (keyword) query = { fullName: { $regex: keyword, $options: 'i'} }
+    if (keyword) query = { fullName: { $regex: new RegExp(keyword, 'i') } }
+    
     if (status) query.status = status
-    query.type = type
+    if (type) query.type = { $in: [parseInt(type)] }
+    // console.log(keyword)
     // console.log(query)
 
     const users = await User.find(query).skip(skip).limit(limit).select("-password -authGoogleID")
@@ -286,16 +287,15 @@ const getUsersByEmail = async (req, res, next) => {    // Get a users list by em
   let { page, limit, type, status, email } = req.query
   page = parseInt(page) || 1
   limit = parseInt(limit) || 10
-  if (!type) type = 1
   if (!status) status = undefined
-
+  
   const skip = (page - 1) * limit
 
   try {
     let query = {};
     if (email) query = { email: { $regex: email, $options: 'i'} }
     if (status) query.status = status
-    query.type = type
+    if (type) query.type = { $in: [parseInt(type)] }
     // console.log(query)
 
     const users = await User.find(query).skip(skip).limit(limit).select("-password -authGoogleID")
@@ -329,7 +329,6 @@ const getUsersByPhone = async (req, res, next) => {    // Get a users list by ph
   let { page, limit, type, status, phone } = req.query
   page = parseInt(page) || 1
   limit = parseInt(limit) || 10
-  if (!type) type = 1
   if (!status) status = undefined
 
   const skip = (page - 1) * limit
@@ -338,7 +337,7 @@ const getUsersByPhone = async (req, res, next) => {    // Get a users list by ph
     let query = {};
     if (phone) query = { phone: { $regex: phone } }
     if (status) query.status = status
-    query.type = type
+    if (type) query.type = { $in: [parseInt(type)] }
     // console.log(query)
 
     const users = await User.find(query).skip(skip).limit(limit).select("-password -authGoogleID")
@@ -372,7 +371,6 @@ const getUsersByIdentityId = async (req, res, next) => {    // Get a users list 
   let { page, limit, type, status, identityID } = req.query
   page = parseInt(page) || 1
   limit = parseInt(limit) || 10
-  if (!type) type = 1
   if (!status) status = undefined
 
   const skip = (page - 1) * limit
@@ -381,7 +379,7 @@ const getUsersByIdentityId = async (req, res, next) => {    // Get a users list 
     let query = {};
     if (identityID) query = { identityID: { $regex: identityID, $options: 'i'} }
     if (status) query.status = status
-    query.type = type
+    if (type) query.type = { $in: [parseInt(type)] }
     // console.log(query)
 
     const users = await User.find(query).skip(skip).limit(limit).select("-password -authGoogleID")
@@ -513,7 +511,7 @@ const deactivateAccountById = async (req, res, next) => {     // Deactivating ac
 }
 
 const deactivateAccountByEmail = async (req, res, next) => {     // Deactivating account by id
-  const { email } = req.value.body
+  const { email } = req.query
 
   try {
     const foundUser = await User.findOne({ email: email })
@@ -567,7 +565,7 @@ const activateAccountById = async (req, res, next) => {     // Activating accoun
 }
 
 const activateAccountByEmail = async (req, res, next) => {     // Activating account by id
-  const { email } = req.value.body
+  const { email } = req.query
 
   try {
     const foundUser = await User.findOne({ email: email })
