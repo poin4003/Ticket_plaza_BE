@@ -45,39 +45,13 @@ const getEvents = async (req, res, next) => {     // Get a eventType list
   }
 }
 
-const updateEventTypeByID = async (req, res, next) => {
-  const { eventTypeID } = req.value.params
+const updateEventType = async (req, res, next) => {
+  let { eventTypeId, typeId } = req.query
 
   try {
-    const foundEventType = await EventType.findById(eventTypeID)
+    const query = {};
 
-    if (!foundEventType) {
-      const error = new Error("Không thể tìm thấy kiểu sự kiện!")
-      error.status = 404
-      throw error 
-    }
-
-    const newEventType = req.value.body
-
-    const updateEventType = await EventType.findByIdAndUpdate(eventTypeID, newEventType)
-
-    return res.status(201).json({ 
-      data: [
-        { data: newEventType }
-      ], 
-      pagination: {},
-      message: "Cập nhật thông tin kiểu sự kiện thành công!" 
-    })
-  } catch (error) {
-    next(error)
-  }
-}
-
-const updateEventTypeByTypeID = async (req, res, next) => {
-  let { typeId } = req.query
-
-  try {
-    let query = {};
+    if (eventTypeId) query._id = eventTypeId
     if (typeId) query = { typeId: { $regex: typeId, $options: 'i'} }
 
     const eventType = await EventType.findOne(query)
@@ -90,7 +64,7 @@ const updateEventTypeByTypeID = async (req, res, next) => {
 
     const newEventType = req.value.body
 
-    const udpateEventType = await EventType.updateOne({ _id: newEventType._id }, newEventType)
+    const udpateEventType = await EventType.findByIdAndUpdate(eventType._id, newEventType)
 
     return res.status(201).json({ 
       data: [
@@ -121,10 +95,12 @@ const createEventType = async (req, res, next) => {   // Create eventType
 }
 
 const activateEventType = async (req, res, next) => {     // Activating eventype by id
-  let { typeId } = req.query
+  let { eventTypeId, typeId } = req.query
 
   try {
     let query = {};
+
+    if (eventTypeId) query._id = eventTypeId
     if (typeId) query = { typeId: { $regex: typeId, $options: 'i'} }
 
     const foundEventType = await EventType.findOne(query)
@@ -140,7 +116,7 @@ const activateEventType = async (req, res, next) => {     // Activating eventype
 
     return res.status(201).json({ 
       data: [
-        { data: { status: 0 } }
+        { data: { status: foundEventType.status } }
       ], 
       pagination: {},
       message: "Mở khóa kiểu sự kiện thành công!" 
@@ -151,10 +127,12 @@ const activateEventType = async (req, res, next) => {     // Activating eventype
 }
 
 const deavtivateEventType = async (req, res, next) => {     // Deactivating eventype by id
-  let { typeId } = req.query
+  let { eventTypeId, typeId } = req.query
 
   try {
     let query = {};
+
+    if (eventTypeId) query._id = eventTypeId
     if (typeId) query = { typeId: { $regex: typeId, $options: 'i'} }
 
     const foundEventType = await EventType.findOne(query)
@@ -170,7 +148,7 @@ const deavtivateEventType = async (req, res, next) => {     // Deactivating even
 
     return res.status(201).json({ 
       data: [
-        { data: { status: 1 } }
+        { data: { status: foundEventType.status } }
       ], 
       pagination: {},
       message: "Khóa kiểu sự kiện thành công!" 
@@ -183,8 +161,7 @@ const deavtivateEventType = async (req, res, next) => {     // Deactivating even
 // Export controllers
 module.exports = {
   getEvents,
-  updateEventTypeByID,
-  updateEventTypeByTypeID,
+  updateEventType,
   createEventType,
   activateEventType,
   deavtivateEventType

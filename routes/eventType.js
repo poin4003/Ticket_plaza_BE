@@ -20,22 +20,16 @@ router.route('/')
     validateBody(schemas.eventTypeSchema), 
     EventTypeController.createEventType)
 
-router.route('/updateEventTypeByID/:eventTypeID')
-  .patch(passport.authenticate('jwt', {session: false }), 
-    validateParam(schemas.idSchema, 'eventTypeID'), 
-    validateBody(schemas.eventTypeOptionalSchema), 
-    EventTypeController.updateEventTypeByID)
-
-router.route('/updateEventTypeByTypeID')
+router.route('/updateEventType')
   .patch(passport.authenticate('jwt', { session: false }),
     validateBody(schemas.eventTypeOptionalSchema),
-    EventTypeController.updateEventTypeByTypeID)
+    EventTypeController.updateEventType)
 
-router.route('/deactivateEventTypeByTypeID')
+router.route('/deactivateEventType')
   .patch(passport.authenticate('jwt', { session: false }),
     EventTypeController.deavtivateEventType)
 
-router.route('/activateEventTypeByTypeID')
+router.route('/activateEventType')
   .patch(passport.authenticate('jwt', { session: false }),
     EventTypeController.activateEventType)
 
