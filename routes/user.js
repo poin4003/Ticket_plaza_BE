@@ -21,9 +21,8 @@ router.route('/')
   .post(validateBody(schemas.userSchema), 
     UserController.createNewUser)
 
-router.route('/updateUserById/:userID')
-  .patch(passport.authenticate('jwt', {session: false}),
-    validateParam(schemas.idSchema, 'userID'), 
+router.route('/updateUser')
+  .patch(passport.authenticate('jwt', {session: false}), 
     validateBody(schemas.userOptionalSchema), 
     UserController.updateUserById)
 

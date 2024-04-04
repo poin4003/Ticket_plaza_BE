@@ -257,10 +257,10 @@ const createNewUser = async (req, res, next) => {   // Create user
 }
 
 const updateUserById = async (req, res, next) => {   // Update user by id (patch)
-  const { userID } = req.value.params
+  const { userId } = req.query
 
   try {
-    const foundUser = await User.findById(userID).select("-password -authGoogleID")
+    const foundUser = await User.findById(userId).select("-password -authGoogleID")
 
     if (!foundUser) {
       const error = new Error("Không thể tìm thấy tài khoản người dùng!")
@@ -270,7 +270,7 @@ const updateUserById = async (req, res, next) => {   // Update user by id (patch
 
     const newUser = req.value.body
 
-    const updateCustomer = await User.findByIdAndUpdate(userID, newUser)
+    const updateCustomer = await User.findByIdAndUpdate(userId, newUser)
 
     return res.status(201).json({ 
       data: [
