@@ -199,17 +199,17 @@ const getUsers = async (req, res, next) => {
   try {
     const query = {}
 
-    if (userId) query._id = userId;
-    if (fullName) query.fullName = { $regex: new RegExp(fullName, 'i') };
-    if (email) query.email = { $regex: new RegExp(email, 'i') };
-    if (phone) query.phone = { $regex: phone };
-    if (identityID) query.identityID = { $regex: identityID };
-    if (type) query.type = { $in: [parseInt(type)] };
-    if (status) query.status = status;
+    if (userId) query._id = userId
+    if (fullName) query.fullName = { $regex: new RegExp(fullName, 'i') }
+    if (email) query.email = { $regex: new RegExp(email, 'i') }
+    if (phone) query.phone = { $regex: phone }
+    if (identityID) query.identityID = { $regex: identityID }
+    if (type) query.type = { $in: [parseInt(type)] }
+    if (status) query.status = status
 
     const users = await User.find(query).skip(skip).limit(limit).select("-password -authGoogleID")
 
-    console.log(users)
+    // console.log(users)
 
     if (users.length === 0) {
       const error = new Error("Không thể tìm thấy tài khoản người dùng!")
