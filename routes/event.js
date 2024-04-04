@@ -20,12 +20,18 @@ router.route('/')
     validateBody(schemas.eventSchema), 
     EventController.createNewEvent)
 
-router.route('/udpateEventById/:eventID')
+router.route('/udpateEvent')
   .patch(passport.authenticate('jwt', {session: false }), 
-    validateParam(schemas.idSchema, 'eventID'), 
     validateBody(schemas.eventOptionalSchema), 
-    EventController.updateEventById)
+    EventController.updateEvent)
 
+router.route('/deactivateEvent')
+  .patch(passport.authenticate('jwt', { session: false }),
+    EventController.deactivateEvent)
+
+router.route('/activateEvent')
+  .patch(passport.authenticate('jwt', { session: false }),
+    EventController.activateEvent)
 
 
 // Export module

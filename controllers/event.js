@@ -87,24 +87,58 @@ const getEvents = async (req, res, next) => {      // Get list event
 }
 
 const deactivateEvent = async (req, res, next) => {
+  let { eventId } = req.query
 
+  try {
+    let query = {};
+
+    if (eventId) query._id = eventId
+
+    const foundEvent = await Event.findOne(query)
+
+    if (!foundEvent) return sendRespone(res, { data: [] }, "Không thể tìm thấy sự kiện!")
+
+    foundEvent.status = 1
+    await foundEvent.save()
+
+    return sendRespone(res, { data: foundEvent }, "Mở khóa sự kiện thành công!")
+  } catch (error) {
+    next(error)
+  }
 }
 
 const activateEvent = async (req, res, next) => {
-
-}
-
-const updateEventById = async (req, res, next) => {   // Update event by id (patch)
-  const { eventID } = req.value.params
+  let { eventId } = req.query
 
   try {
-    const foundEvent = await Event.findById(eventID)
+    let query = {};
+
+    if (eventId) query._id = eventId
+
+    const foundEvent = await Event.findOne(query)
+
+    if (!foundEvent) return sendRespone(res, { data: [] }, "Không thể tìm thấy sự kiện!")
+
+    foundEvent.status = 0
+    await foundEvent.save()
+
+    return sendRespone(res, { data: foundEvent }, "Mở khóa sự kiện thành công!")
+  } catch (error) {
+    next(error)
+  }
+}
+
+const updateEvent = async (req, res, next) => {   // Update event by id (patch)
+  const { eventId } = req.query
+
+  try {
+    const foundEvent = await Event.findById(eventId)
 
     if (!foundEvent) return sendRespone(res, { data: [] }, "Không thể tìm thấy sự kiện!")
 
     const newEvent = req.value.body
 
-    const updateEvent = await Event.findByIdAndUpdate(eventID, newEvent)
+    const updateEvent = await Event.findByIdAndUpdate(eventId, newEvent)
 
     return sendRespone(res, { data: newEvent }, "Cập nhật thông tin sự kiện thành công!") 
   } catch (error) {
@@ -116,7 +150,7 @@ const updateEventById = async (req, res, next) => {   // Update event by id (pat
 module.exports = {
   getEvents, 
   createNewEvent,
-  updateEventById,
+  updateEvent,
   deactivateEvent,
   activateEvent
 }
