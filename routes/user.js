@@ -21,52 +21,20 @@ router.route('/')
   .post(validateBody(schemas.userSchema), 
     UserController.createNewUser)
 
-router.route('/getUserById/:userID')  // Route for User
-  .get(passport.authenticate('jwt', { session: false}),
-    validateParam(schemas.idSchema, 'userID'), 
-    UserController.getUserById)
-
-router.route('/updateUserById/:userID')
-  .patch(passport.authenticate('jwt', {session: false}),
-    validateParam(schemas.idSchema, 'userID'), 
+router.route('/updateUser')
+  .patch(passport.authenticate('jwt', {session: false}), 
     validateBody(schemas.userOptionalSchema), 
     UserController.updateUserById)
 
-router.route('/getUsersByName')
-  .get(passport.authenticate('jwt', { session: false }),
-    UserController.getUsersByName)
-
-router.route('/getUsersByEmail')
-  .get(passport.authenticate('jwt', { session: false }),
-    UserController.getUsersByEmail)
-
-router.route('/getUsersByPhone')
-  .get(passport.authenticate('jwt', { session: false }),
-    UserController.getUsersByPhone)
-
-router.route('/getUsersByIdentityID')
-  .get(passport.authenticate('jwt', { session: false }),
-    UserController.getUsersByIdentityId)
-
-router.route('/deactivateAccountById/:userID')
-  .patch(passport.authenticate('jwt', { session: false }),
-    validateParam(schemas.idSchema, 'userID'),
-    UserController.deactivateAccountById)
-
-router.route('/activateAccountById/:userID')
-  .patch(passport.authenticate('jwt', { session: false }),
-    validateParam(schemas.idSchema, 'userID'),
-    UserController.activateAccountById)
-
-router.route('/deactivateAccountByEmail')
+router.route('/deactivateAccount')
   .patch(passport.authenticate('jwt', { session: false }),
     validateBody(schemas.userOptionalSchema, { session: false }),
-    UserController.deactivateAccountByEmail)
+    UserController.deactivateAccount)
 
-router.route('/activateAccountByEmail')
+router.route('/activateAccount')
   .patch(passport.authenticate('jwt', { session: false }),
     validateBody(schemas.userOptionalSchema, { session: false }),
-    UserController.activateAccountByEmail)
+    UserController.activateAccount)
 
 router.route('/signup')  // Route for create account
   .post(validateBody(schemas.authSignUpSchema), 

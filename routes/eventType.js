@@ -15,20 +15,10 @@ const passportConfig = require('../middlewares/passport')
 // Routes
 router.route('/')
   .get(passport.authenticate('jwt', { session: false }), 
-    EventTypeController.getListEventTypes)
+    EventTypeController.getEvents)
   .post(passport.authenticate('jwt', { session: false }),  
     validateBody(schemas.eventTypeSchema), 
     EventTypeController.createEventType)
-
-
-router.route('/getEventTypeByID/:eventTypeID')                              // Route for eventType with id
-  .get(passport.authenticate('jwt', { session: false }), 
-    validateParam(schemas.idSchema, 'eventTypeID'), 
-    EventTypeController.getEventTypeByID)
-
-router.route('/getEventTypeByTypeID')                                    // Route for eventType with typeId
-  .get(passport.authenticate('jwt', { session: false }),
-    EventTypeController.getEventTypeByTypeID)
 
 router.route('/updateEventTypeByID/:eventTypeID')
   .patch(passport.authenticate('jwt', {session: false }), 

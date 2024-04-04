@@ -2,18 +2,20 @@
 const EventType = require('../models/EventType')
 
 // Controllers for EventType
-const getListEventTypes = async (req, res, next) => {     // Get a eventType list
-  let { page, limit, status } = req.query
+const getEvents = async (req, res, next) => {     // Get a eventType list
+  let { page, limit, status, eventTypeId, typeId, eventTypeName } = req.query
   limit = parseInt(limit) || 10
   page = parseInt(page) || 1
-  if (!status) status = undefined
 
   const skip = (page - 1) * limit;
 
   try {
-    let query = {}
+    const query = {}
 
-    if (status !== undefined) query.status = status;
+    if (eventTypeId) query._id = eventTypeId
+    if (typeId) query.typeId = { $regex: new RegExp(typeId, 'i') }
+    if (eventTypeName) query.eventTypeName = { $regex: new RegExp(eventTypeName, 'i') }
+    if (status) query.status = status
 
     const eventTypes = await EventType.find(query).skip(skip).limit(limit)
 
@@ -37,57 +39,6 @@ const getListEventTypes = async (req, res, next) => {     // Get a eventType lis
         totalPages: totalPages
       },
       message: `${totalEventTypes} kiểu sự kiện đã được tìm thấy!` 
-    })
-  } catch (error) {
-    next(error)
-  }
-}
-
-const getEventTypeByID = async (req, res, next) => {
-  const { eventTypeID } = req.value.params
-
-  try {
-    const eventType = await EventType.findById(eventTypeID)
-
-    if (!eventType) {
-      const error = new Error("Không thể tìm thấy kiểu sự kiện!")
-      error.status = 404
-      throw error
-    }
-
-    return res.status(201).json({ 
-      data: [
-        { data: eventType }
-      ], 
-      pagination: {},
-      message: "Kiểu sự kiện đã được tìm thấy!" 
-    })
-  } catch (error) {
-    next(error)
-  }
-}
-
-const getEventTypeByTypeID = async (req, res, next) => {
-  let { typeId } = req.query
-
-  try {
-    let query = {};
-    if (typeId) query = { typeId: { $regex: typeId, $options: 'i'} }
-
-    const eventType = await EventType.findOne(query)
-
-    if (!eventType) {
-      const error = new Error("Không thể tìm thấy kiểu sự kiện!")
-      error.status = 404
-      throw error 
-    }
-
-    return res.status(201).json({ 
-      data: [
-        { data: eventType }
-      ], 
-      pagination: {},
-      message: `Kiểu sự kiện đã được tìm thấy!`
     })
   } catch (error) {
     next(error)
@@ -231,9 +182,7 @@ const deavtivateEventType = async (req, res, next) => {     // Deactivating even
 
 // Export controllers
 module.exports = {
-  getListEventTypes,
-  getEventTypeByID,
-  getEventTypeByTypeID,
+  getEvents,
   updateEventTypeByID,
   updateEventTypeByTypeID,
   createEventType,
