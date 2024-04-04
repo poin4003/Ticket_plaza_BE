@@ -19,12 +19,6 @@ const getEvents = async (req, res, next) => {     // Get a eventType list
 
     const eventTypes = await EventType.find(query).skip(skip).limit(limit)
 
-    if (eventTypes.length === 0) {
-      const error = new Error("Không thể tìm thấy kiểu sự kiện!")
-      error.status = 404
-      throw error 
-    }
-
     const totalEventTypes = await EventType.countDocuments(query)
 
     const totalPages = Math.ceil(totalEventTypes / limit)

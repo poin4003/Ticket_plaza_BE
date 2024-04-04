@@ -15,31 +15,10 @@ const passportConfig = require('../middlewares/passport')
 // Routes
 router.route('/')
   .get(passport.authenticate('jwt', { session: false }), 
-    EventController.getListEvents)
+    EventController.getEvents)
   .post(passport.authenticate('jwt', { session: false }),  
     validateBody(schemas.eventSchema), 
     EventController.createNewEvent)
-
-router.route('/getEventById/:eventID')  // Route for event with id
-  .get(passport.authenticate('jwt', { session: false }), 
-    validateParam(schemas.idSchema, 'eventID'), 
-    EventController.getEventById)
-
-router.route('/getListEventsByName')
-  .get(passport.authenticate('jwt', { session: false }),
-  EventController.getListEventsByName)
-
-router.route('/getListEventsByHost')
-  .get(passport.authenticate('jwt', { session: false }),
-  EventController.getListEventsByHost)
-
-router.route('/getListEventsByMember')
-  .get(passport.authenticate('jwt', { session: false }),
-  EventController.getListEventsByMember)
-
-router.route('/getListEventsByHostOrMember')
-  .get(passport.authenticate('jwt', { session: false }),
-  EventController.getListEventsByHostOrMember)
 
 router.route('/udpateEventById/:eventID')
   .patch(passport.authenticate('jwt', {session: false }), 

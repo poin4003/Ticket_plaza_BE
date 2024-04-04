@@ -211,12 +211,6 @@ const getUsers = async (req, res, next) => {
 
     // console.log(users)
 
-    if (users.length === 0) {
-      const error = new Error("Không thể tìm thấy tài khoản người dùng!")
-      error.status = 404
-      throw error
-    }
-
     const totalUsers = await User.countDocuments(query)
     const totalPages = Math.ceil(totalUsers / limit)
 
