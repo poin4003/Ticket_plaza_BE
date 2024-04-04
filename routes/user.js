@@ -27,25 +27,15 @@ router.route('/updateUserById/:userID')
     validateBody(schemas.userOptionalSchema), 
     UserController.updateUserById)
 
-router.route('/deactivateAccountById/:userID')
-  .patch(passport.authenticate('jwt', { session: false }),
-    validateParam(schemas.idSchema, 'userID'),
-    UserController.deactivateAccountById)
-
-router.route('/activateAccountById/:userID')
-  .patch(passport.authenticate('jwt', { session: false }),
-    validateParam(schemas.idSchema, 'userID'),
-    UserController.activateAccountById)
-
-router.route('/deactivateAccountByEmail')
+router.route('/deactivateAccount')
   .patch(passport.authenticate('jwt', { session: false }),
     validateBody(schemas.userOptionalSchema, { session: false }),
-    UserController.deactivateAccountByEmail)
+    UserController.deactivateAccount)
 
-router.route('/activateAccountByEmail')
+router.route('/activateAccount')
   .patch(passport.authenticate('jwt', { session: false }),
     validateBody(schemas.userOptionalSchema, { session: false }),
-    UserController.activateAccountByEmail)
+    UserController.activateAccount)
 
 router.route('/signup')  // Route for create account
   .post(validateBody(schemas.authSignUpSchema), 

@@ -197,7 +197,7 @@ const getUsers = async (req, res, next) => {
   const skip = (page - 1) * limit
 
   try {
-    const query = {};
+    const query = {}
 
     if (userId) query._id = userId;
     if (fullName) query.fullName = { $regex: new RegExp(fullName, 'i') };
@@ -284,38 +284,16 @@ const updateUserById = async (req, res, next) => {   // Update user by id (patch
   }
 }
 
-const deactivateAccountById = async (req, res, next) => {     // Deactivating account by id
-  const { userID } = req.value.params
+const deactivateAccount = async (req, res, next) => {     // Deactivating account by id
+  let { userId, email } = req.query
 
   try {
-    const foundUser = await User.findById(userID)
+    const query = {}
 
-    if (!foundUser) {
-      const error = new Error("Không thể tìm thấy người dùng!")
-      error.status = 404
-      throw error
-    }
+    if (userId) query._id = userId
+    if (email) query.email = email
 
-    foundUser.status = 1
-    await foundUser.save()
-
-    return res.status(201).json({ 
-      data: [
-        { data: { status: 1 } }
-      ], 
-      pagination: {},
-      message: "Khóa tài khoản thành công!" 
-    })
-  } catch (error) {
-    next(error)
-  }
-}
-
-const deactivateAccountByEmail = async (req, res, next) => {     // Deactivating account by id
-  const { email } = req.query
-
-  try {
-    const foundUser = await User.findOne({ email: email })
+    const foundUser = await User.findOne(query)
 
     if (!foundUser) {
       const error = new Error("Không thể tìm thấy người dùng!")
@@ -328,7 +306,7 @@ const deactivateAccountByEmail = async (req, res, next) => {     // Deactivating
 
     return res.status(201).json({ 
       data: [
-        { data: { status: 1 } }
+        { data: { status: foundUser.status } }
       ], 
       pagination: {},
       message: "Khóa tài khoản thành công!" 
@@ -338,38 +316,17 @@ const deactivateAccountByEmail = async (req, res, next) => {     // Deactivating
   }
 }
 
-const activateAccountById = async (req, res, next) => {     // Activating account by id
-  const { userID } = req.value.params
+const activateAccount = async (req, res, next) => {     // Activating account by id
+  let { userId, email } = req.query
 
   try {
-    const foundUser = await User.findById(userID)
 
-    if (!foundUser) {
-      const error = new Error("Không thể tìm thấy người dùng!")
-      error.status = 404
-      throw error
-    }
+    const query = {}
 
-    foundUser.status = 0
-    await foundUser.save()
+    if (userId) query._id = userId
+    if (email) query.email = email
 
-    return res.status(201).json({ 
-      data: [
-        { data: { status: 0 } }
-      ], 
-      pagination: {},
-      message: "Mở khóa tài khoản thành công!" 
-    })
-  } catch (error) {
-    next(error)
-  }
-}
-
-const activateAccountByEmail = async (req, res, next) => {     // Activating account by id
-  const { email } = req.query
-
-  try {
-    const foundUser = await User.findOne({ email: email })
+    const foundUser = await User.findOne(query)
 
     if (!foundUser) {
       const error = new Error("Không thể tìm thấy người dùng!")
@@ -382,7 +339,7 @@ const activateAccountByEmail = async (req, res, next) => {     // Activating acc
 
     return res.status(201).json({ 
       data: [
-        { data: { status: 0 } }
+        { data: { status: foundUser.status } }
       ], 
       pagination: {},
       message: "Mở khóa tài khoản thành công!" 
@@ -402,8 +359,6 @@ module.exports = {
   getUsers,
   createNewUser,
   updateUserById,
-  deactivateAccountById,
-  deactivateAccountByEmail,
-  activateAccountById,
-  activateAccountByEmail
+  deactivateAccount,
+  activateAccount
 }
