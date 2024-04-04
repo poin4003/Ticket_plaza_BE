@@ -20,11 +20,20 @@ router.route('/')
     validateBody(schemas.eventSchema), 
     EventController.createNewEvent)
 
-router.route('/udpateEvent')
+router.route('/getRevenue')
+  .get(passport.authenticate('jwt', { session: false }),
+    EventController.getRevenue)
+
+router.route('/updateEvent')
   .patch(passport.authenticate('jwt', {session: false }), 
     validateBody(schemas.eventOptionalSchema), 
     EventController.updateEvent)
 
+
+router.route('/updateEventProfit')
+  .patch(passport.authenticate('jwt', {session: false }),
+    EventController.updateEventProfit)
+    
 router.route('/deactivateEvent')
   .patch(passport.authenticate('jwt', { session: false }),
     EventController.deactivateEvent)

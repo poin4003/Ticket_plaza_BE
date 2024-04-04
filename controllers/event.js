@@ -53,7 +53,7 @@ const getEvents = async (req, res, next) => {      // Get list event
     if (eventId) eventQuery._id = eventId 
     if (name) eventQuery.name = { $regex: new RegExp(name, 'i') }
     if (type) eventQuery.type = { $regex: new RegExp(type, 'i') }
-    if (status) eventQuery.status = status;
+    if (status) eventQuery.status = status
 
     if (startDate && endDate) {
       eventQuery.date = { $gte: startDate, $lte: endDate };
@@ -81,6 +81,67 @@ const getEvents = async (req, res, next) => {      // Get list event
 
     return sendRespone(res, { data: events }, `${totalEvents} sự kiện đã được tìm thấy!`,
     201, pagination)
+  } catch (error) {
+    next(error)
+  }
+}
+
+const getRevenue = async (req, res, next) => {      // Get revenue
+  let { page, limit, status, startDate, endDate } = req.query
+
+  limit = parseInt(limit) || 8
+  page = parseInt(page) || 1
+
+  const skip = (page - 1) * limit;
+
+  try {
+    let eventQuery = {}
+    if (status) eventQuery.status = status
+
+    if (startDate && endDate) {
+      eventQuery.date = { $gte: startDate, $lte: endDate }
+    }
+
+    let events = await Event.find(eventQuery).skip(skip).limit(limit)
+    let eventNBP = await Event.find(eventQuery)  // events list not by pagination
+
+    if (events.length === 0) return sendRespone(res, { data: [] }, "Không thể tìm thấy sự kiện!")
+
+    const totalEvents = await Event.countDocuments(eventQuery)
+
+    const totalPages = Math.ceil(totalEvents / limit)
+
+    const pagination = {
+      totalItems: totalEvents,
+      currentPage: page,
+      totalPages: totalPages
+    }
+
+    const totalProfitByPagination = events.reduce((acc, event) => acc + event.profit, 0)
+    const totalProfit = eventNBP.reduce((acc, event) => acc + event.profit, 0)
+    return sendRespone(res, { data: events, totalProfitByPagination, totalProfit},
+    `${totalEvents} sự kiện đã được tìm thấy!`, 201, pagination)
+  } catch (error) {
+    next(error)
+  }
+}
+
+const updateEventProfit = async (req, res, next) => {
+  let { eventId, profitToAdd } = req.query
+
+  try {
+    let query = {}
+
+    if (eventId) query._id = eventId
+
+    const foundEvent = await Event.findOne(query)
+
+    if (!foundEvent) return sendRespone(res, { data: [] }, "Không thể tìm thấy sự kiện!")
+
+    foundEvent.profit += parseFloat(profitToAdd)
+
+    await foundEvent.save()
+    return sendRespone(res, { data: foundEvent }, "Cập nhật doanh thu sự kiện thành công!")
   } catch (error) {
     next(error)
   }
@@ -149,8 +210,10 @@ const updateEvent = async (req, res, next) => {   // Update event by id (patch)
 // Export controllers
 module.exports = {
   getEvents, 
+  getRevenue,
   createNewEvent,
   updateEvent,
+  updateEventProfit,
   deactivateEvent,
   activateEvent
 }
