@@ -105,14 +105,6 @@ const authGoogle = async (req, res, next) => {       // Login with google api
 
     const token = encodedToken(user._id);
     res.setHeader('Authorization', token)
-    // res.status(201).json({
-    //   data: [{
-    //     data: user,
-    //     token: token
-    //   }],
-    //   pagination: {},
-    //   message: "Đăng nhập với Google thành công!"
-    // })
 
     const data = {
       data: [{
@@ -197,213 +189,47 @@ const verifyOTP = async (req, res, next) => {
 
 
 // Controller for user
-const getUsers = async (req, res, next) => {     // Get a users list
-  let { page, limit, type, status } = req.query
-  limit = parseInt(limit) || 10
-  page = parseInt(page) || 1
-  if (!status) status = undefined
-
-  const skip = (page - 1) * limit;
-
-  try {
-    let query = { }
-
-    if (status !== undefined) query.status = status;
-    if (type) query.type = { $in: [parseInt(type)] }
-
-    const users = await User.find(query).skip(skip).limit(limit).select("-password -authGoogleID")
-
-    if (users.length === 0) {
-      const error = new Error("Không thể tìm thấy tài khoản người dùng!")
-      error.status = 404
-      throw error 
-    }
-
-    const totalUsers = await User.countDocuments(query)
-
-    const totalPages = Math.ceil(totalUsers / limit)
-
-    return res.status(201).json({ 
-      data: [
-        { data: users }
-      ], 
-      pagination: {
-        totalItems: totalUsers,
-        currentPage: page,
-        totalPages: totalPages
-      },
-      message: `${totalUsers} người dùng đã được tìm thấy!` 
-    })
-  } catch (error) {
-    next(error)
-  }
-}
-
-const getUsersByName = async (req, res, next) => {    // Get a users list by name, type and status
-  let { page, limit, type, status, keyword } = req.query
+const getUsers = async (req, res, next) => {
+  let { page, limit, userId, type, status, fullName, email, phone, identityID } = req.query
   page = parseInt(page) || 1
   limit = parseInt(limit) || 10
-  if (!status) status = undefined
-
-  const skip = (page - 1) * limit
-
-  try {
-    let query = {};
-    if (keyword) query = { fullName: { $regex: new RegExp(keyword, 'i') } }
-    
-    if (status) query.status = status
-    if (type) query.type = { $in: [parseInt(type)] }
-    // console.log(keyword)
-    // console.log(query)
-
-    const users = await User.find(query).skip(skip).limit(limit).select("-password -authGoogleID")
-
-    if (users.length === 0) {
-      const error = new Error("Không thể tìm thấy tài khoản người dùng!")
-      error.status = 404
-      throw error 
-    }
-
-    const totalUsers = await User.countDocuments(query)
-    const totalPages = Math.ceil(totalUsers / limit)
-
-    return res.status(201).json({ 
-      data: [
-        { data: users }
-      ], 
-      pagination: {
-        totalItems: totalUsers,
-        currentPage: page,
-        totalPages: totalPages
-      },
-      message: `${totalUsers} người dùng được tìm thấy!`
-    })
-  } catch (error) {
-    next(error)
-  }
-}
-
-const getUsersByEmail = async (req, res, next) => {    // Get a users list by email, type and status
-  let { page, limit, type, status, email } = req.query
-  page = parseInt(page) || 1
-  limit = parseInt(limit) || 10
-  if (!status) status = undefined
   
   const skip = (page - 1) * limit
 
   try {
-    let query = {};
-    if (email) query = { email: { $regex: email, $options: 'i'} }
-    if (status) query.status = status
-    if (type) query.type = { $in: [parseInt(type)] }
-    // console.log(query)
+    const query = {};
+
+    if (userId) query._id = userId;
+    if (fullName) query.fullName = { $regex: new RegExp(fullName, 'i') };
+    if (email) query.email = { $regex: new RegExp(email, 'i') };
+    if (phone) query.phone = { $regex: phone };
+    if (identityID) query.identityID = { $regex: identityID };
+    if (type) query.type = { $in: [parseInt(type)] };
+    if (status) query.status = status;
 
     const users = await User.find(query).skip(skip).limit(limit).select("-password -authGoogleID")
+
+    console.log(users)
 
     if (users.length === 0) {
       const error = new Error("Không thể tìm thấy tài khoản người dùng!")
       error.status = 404
-      throw error 
+      throw error
     }
 
     const totalUsers = await User.countDocuments(query)
     const totalPages = Math.ceil(totalUsers / limit)
 
-    return res.status(201).json({ 
+    return res.status(201).json({
       data: [
         { data: users }
-      ], 
+      ],
       pagination: {
         totalItems: totalUsers,
         currentPage: page,
         totalPages: totalPages
-      },
-      message: `${totalUsers} người dùng được tìm thấy!`
-    })
-  } catch (error) {
-    next(error)
-  }
-}
-
-const getUsersByPhone = async (req, res, next) => {    // Get a users list by phone, type and status
-  let { page, limit, type, status, phone } = req.query
-  page = parseInt(page) || 1
-  limit = parseInt(limit) || 10
-  if (!status) status = undefined
-
-  const skip = (page - 1) * limit
-
-  try {
-    let query = {};
-    if (phone) query = { phone: { $regex: phone } }
-    if (status) query.status = status
-    if (type) query.type = { $in: [parseInt(type)] }
-    // console.log(query)
-
-    const users = await User.find(query).skip(skip).limit(limit).select("-password -authGoogleID")
-
-    if (users.length === 0) {
-      const error = new Error("Không thể tìm thấy tài khoản người dùng!")
-      error.status = 404
-      throw error 
-    }
-
-    const totalUsers = await User.countDocuments(query)
-    const totalPages = Math.ceil(totalUsers / limit)
-
-    return res.status(201).json({ 
-      data: [
-        { data: users }
-      ], 
-      pagination: {
-        totalItems: totalUsers,
-        currentPage: page,
-        totalPages: totalPages
-      },
-      message: `${totalUsers} người dùng được tìm thấy!`
-    })
-  } catch (error) {
-    next(error)
-  }
-}
-
-const getUsersByIdentityId = async (req, res, next) => {    // Get a users list by identityId ,type and status
-  let { page, limit, type, status, identityID } = req.query
-  page = parseInt(page) || 1
-  limit = parseInt(limit) || 10
-  if (!status) status = undefined
-
-  const skip = (page - 1) * limit
-
-  try {
-    let query = {};
-    if (identityID) query = { identityID: { $regex: identityID, $options: 'i'} }
-    if (status) query.status = status
-    if (type) query.type = { $in: [parseInt(type)] }
-    // console.log(query)
-
-    const users = await User.find(query).skip(skip).limit(limit).select("-password -authGoogleID")
-
-    if (users.length === 0) {
-      const error = new Error("Không thể tìm thấy tài khoản người dùng!")
-      error.status = 404
-      throw error 
-    }
-
-    const totalUsers = await User.countDocuments(query)
-    const totalPages = Math.ceil(totalUsers / limit)
-
-    return res.status(201).json({ 
-      data: [
-        { data: users }
-      ], 
-      pagination: {
-        totalItems: totalUsers,
-        currentPage: page,
-        totalPages: totalPages
-      },
-      message: `${totalUsers} người dùng được tìm thấy!`
-    })
+      }
+    }) 
   } catch (error) {
     next(error)
   }
@@ -428,31 +254,6 @@ const createNewUser = async (req, res, next) => {   // Create user
     pagination: {},
     message: "Tạo người dùng mới thành công!" 
   })
-}
-
-// Controller for Customer
-const getUserById = async (req, res, next) => {      // Get user by id (get)
-  const { userID } = req.value.params
-
-  try {
-    const user = await User.findById(userID).select("-password -authGoogleID")
-
-    if (!user) {
-      const error = new Error("Không thể tìm thấy tài khoản người dùng!")
-      error.status = 404
-      throw error
-    }
-
-    return res.status(201).json({ 
-      data: [
-        { data: user }
-      ], 
-      pagination: {},
-      message: "Tài khoản đã được tìm thấy!" 
-    })
-  } catch (error) {
-    next(error)
-  }
 }
 
 const updateUserById = async (req, res, next) => {   // Update user by id (patch)
@@ -599,11 +400,6 @@ module.exports = {
   forgotPassword,
   verifyOTP,
   getUsers,
-  getUsersByName,
-  getUsersByEmail,
-  getUsersByPhone,
-  getUsersByIdentityId,
-  getUserById,
   createNewUser,
   updateUserById,
   deactivateAccountById,

@@ -287,15 +287,7 @@ const getListEventsByPlace = async (req, res, next) => {
 
 }
 
-const getListEventsByTime = async (req, res, next) => {
-
-}
-
 const getListEventsByDate = async (req, res, next) => {
-
-}
-
-const getListEventsByTimeOrDate = async (req, res, next) => {
 
 }
 
@@ -368,9 +360,7 @@ module.exports = {
   getListEventsByHostOrMember,
   getListEventsByType,
   getListEventsByPlace,
-  getListEventsByTime,
   getListEventsByDate,
-  getListEventsByTimeOrDate,
   getEventById,
   createNewEvent,
   getEventById,

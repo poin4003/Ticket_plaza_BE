@@ -21,32 +21,11 @@ router.route('/')
   .post(validateBody(schemas.userSchema), 
     UserController.createNewUser)
 
-router.route('/getUserById/:userID')  // Route for User
-  .get(passport.authenticate('jwt', { session: false}),
-    validateParam(schemas.idSchema, 'userID'), 
-    UserController.getUserById)
-
 router.route('/updateUserById/:userID')
   .patch(passport.authenticate('jwt', {session: false}),
     validateParam(schemas.idSchema, 'userID'), 
     validateBody(schemas.userOptionalSchema), 
     UserController.updateUserById)
-
-router.route('/getUsersByName')
-  .get(passport.authenticate('jwt', { session: false }),
-    UserController.getUsersByName)
-
-router.route('/getUsersByEmail')
-  .get(passport.authenticate('jwt', { session: false }),
-    UserController.getUsersByEmail)
-
-router.route('/getUsersByPhone')
-  .get(passport.authenticate('jwt', { session: false }),
-    UserController.getUsersByPhone)
-
-router.route('/getUsersByIdentityID')
-  .get(passport.authenticate('jwt', { session: false }),
-    UserController.getUsersByIdentityId)
 
 router.route('/deactivateAccountById/:userID')
   .patch(passport.authenticate('jwt', { session: false }),
