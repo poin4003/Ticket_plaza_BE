@@ -118,6 +118,66 @@ const schemas = {
     typeId: Joi.string().min(2),
     eventTypeName: Joi.string(),
     status: Joi.number()
+  }),
+
+  ticketSchema: Joi.object().keys({
+    eventId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
+    name: Joi.string().min(2).required(),
+    price: Joi.number().required(),
+    description: Joi.string().required(),
+    releaseDate: Joi.string().required(),
+    expirationDate: Joi.string().required(),
+    totalAmount: Joi.number().required(),
+    status: Joi.number() 
+  }),
+
+  ticketOptionalSchema: Joi.object().keys({
+    eventId: Joi.string().regex(/^[0-9a-fA-F]{24}$/),
+    name: Joi.string().min(2),
+    price: Joi.number(),
+    description: Joi.string(),
+    releaseDate: Joi.string(),
+    expirationDate: Joi.string(),
+    totalAmount: Joi.number(),
+    status: Joi.number() 
+  }),
+
+  billSchema: Joi.object().keys({
+    date: Joi.string().required(),
+    userId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
+    eventId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
+    ticketsId: Joi.array().items(Joi.string().regex(/^[0-9a-fA-F]{24}$/)).required(),
+    totalPrice: Joi.number().required(),
+    discount: Joi.number().required(),
+    checkoutMethod: Joi.string().required(),
+    status: Joi.number().required()
+  }),
+  
+  billOptionalSchema: Joi.object().keys({
+    date: Joi.string(),
+    userId: Joi.string().regex(/^[0-9a-fA-F]{24}$/),
+    eventId: Joi.string().regex(/^[0-9a-fA-F]{24}$/),
+    ticketsId: Joi.array().items(Joi.string().regex(/^[0-9a-fA-F]{24}$/)),
+    totalPrice: Joi.number(),
+    discount: Joi.number(),
+    checkoutMethod: Joi.string(),
+    status: Joi.number()
+  }),
+
+  feetbackSchema: Joi.object().keys({
+    billId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
+    eventId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
+    rate: Joi.number().max(5).required(),
+    context: Joi.string().required(),
+    photos: Joi.array().items(Joi.string()).required()
+  }),
+
+  feetbackOptionalSchema: Joi.object().keys({
+    billId: Joi.string().regex(/^[0-9a-fA-F]{24}$/),
+    eventId: Joi.string().regex(/^[0-9a-fA-F]{24}$/),
+    rate: Joi.number().max(5),
+    context: Joi.string(),
+    photos: Joi.array().items(Joi.string())
   })
 }
 

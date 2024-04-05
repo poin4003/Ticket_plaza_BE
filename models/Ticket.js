@@ -1,11 +1,12 @@
 // Import module for User model
 const mongoose = require('mongoose')     // Module for database handling
+const Event = require('./Event')
 const Schema = mongoose.Schema 
 
 const TicketSchema = new Schema({
-  eventID: [{
+  eventId: [{
     type: Schema.Types.ObjectId,
-    ref: 'Event'
+    ref: Event
   }],
   name: {
     type: String

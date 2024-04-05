@@ -15,6 +15,9 @@ const cors = require('cors')                    // Module for CORS
 const usersRoute = require('./routes/user')            // Import user's route configs
 const eventRoute = require('./routes/event')           // Import event's route configs
 const eventTypeRoute = require('./routes/eventType')   // Import eventType's route configs
+const ticketRoute = require('./routes/ticket')          // Import ticket's route configs
+const billRoute = require('./routes/bill')             // Import bill's route configs
+const feetbackRoute = require('./routes/feetback')     // Import feetback's route configs
 const passportSetup = require("./middlewares/passport")// Import passport setup file
 
 // Setup connect mongodb by mongoose
@@ -64,8 +67,10 @@ app.get('/', (req, res, next) => {  // Test route
 
 app.use('/users', usersRoute)           // Navigate to usersRoute
 app.use('/events', eventRoute)          // Navigate to eventRoute
-app.use('/eventTypes', eventTypeRoute)  // Naviaget to eventTypeRoute
-
+app.use('/eventTypes', eventTypeRoute)  // Navigate to eventTypeRoute
+app.use('/tickets', ticketRoute)        // Navigate to ticketRoute
+app.use('/bills', billRoute)            // Navigate to billRoute
+app.use('/feetback', feetbackRoute)     // Navigate to feetbackRoute
 
 // Error handler function
 app.use((err, req, res, next) => {

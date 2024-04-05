@@ -25,7 +25,7 @@ const UserSchema = new Schema({
     type: String
   },
   type: {
-    type: Number
+    type: Number,
   },
   status: {
     type: Number,

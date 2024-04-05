@@ -6,13 +6,13 @@ const BillSchema = new Schema({
   date: {
     type: String
   },
-  user_id: {
-    type: String
+  userId: {
+    type: Schema.Types.ObjectId
   },
-  event_id: {
-    type: String
+  eventId: {
+    type: Schema.Types.ObjectId
   },
-  tickets_id: [{
+  ticketsId: [{
     type: String
   }],
   totalPrice: {
@@ -30,5 +30,5 @@ const BillSchema = new Schema({
 })
 
 // Export Bill model
-const Bill = mongoose.model('Bill', UserSchema)
+const Bill = mongoose.model('Bill', BillSchema)
 module.exports = Bill
