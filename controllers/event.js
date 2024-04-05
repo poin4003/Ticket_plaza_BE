@@ -1,6 +1,31 @@
-// Import module for user controller
+// Import module for event controller
 const Event = require('../models/Event')
-const User = require('../models/User')
+
+// Respone function
+const sendRespone = (res, data, message, status = 201, pagination = {}) =>{
+  return res.status(status).json({
+    data: [ data ],
+    pagination,
+    message
+  })
+}
+
+// Sort events by date time
+const sortEventsByDateTime = (events) => {
+  events.sort((a, b) => {
+    const dateA = new Date(`${a.date} ${a.time}`)
+    const dateB = new Date(`${b.date} ${b.time}`)
+    return dateA - dateB
+  })
+  events.reverse();
+  return events
+}
+
+// Sort events by views
+const sortEventsByViews = (events) => {
+    events.sort((eventA, eventB) => eventB.views - eventA.views);
+    return events;
+};
 
 // Controller for event
 const createNewEvent = async (req, res, next) => {   // Create new Event
@@ -8,344 +33,175 @@ const createNewEvent = async (req, res, next) => {   // Create new Event
 
   await newEvent.save()
 
-  return res.status(201).json({ 
-    data: [
-      { data: newEvent }
-    ], 
-    paganition: {},
-    message: "Tạo sự kiện mới thành công" 
-  })
+  return sendRespone(res, { data: newEvent }, "Tạo sự kiện mới thành công") 
 }
 
-const getListEvents = async (req, res, next) => {      // Get list event
-  let { page, limit, status } = req.query
+const getEvents = async (req, res, next) => {      // Get list event
+  let { page, limit, status, eventId, name, host, 
+    member, type, startDate, endDate, sort } = req.query
+
   limit = parseInt(limit) || 8
   page = parseInt(page) || 1
-  if (!status) status = undefined
 
   const skip = (page - 1) * limit;
 
   try {
+    let eventQuery = {}
+
+    if (host) eventQuery.host = host
+    if (member) eventQuery.members = { $in: member }
+    if (eventId) eventQuery._id = eventId 
+    if (name) eventQuery.name = { $regex: new RegExp(name, 'i') }
+    if (type) eventQuery.type = { $regex: new RegExp(type, 'i') }
+    if (status) eventQuery.status = status
+
+    if (startDate && endDate) {
+      eventQuery.date = { $gte: startDate, $lte: endDate };
+    }
+
+    let events = await Event.find(eventQuery).skip(skip).limit(limit)
+
+    if (events.length === 0) return sendRespone(res, { data: [] }, "Không thể tìm thấy sự kiện!")
+
+    if (sort === 'view') { 
+      events = sortEventsByViews(events)
+    } else {
+      events = sortEventsByDateTime(events)
+    }
+
+    const totalEvents = await Event.countDocuments(eventQuery)
+
+    const totalPages = Math.ceil(totalEvents / limit)
+
+    const pagination = {
+      totalItems: totalEvents,
+      currentPage: page,
+      totalPages: totalPages
+    }
+
+    return sendRespone(res, { data: events }, `${totalEvents} sự kiện đã được tìm thấy!`,
+    201, pagination)
+  } catch (error) {
+    next(error)
+  }
+}
+
+const getRevenue = async (req, res, next) => {      // Get revenue
+  let { page, limit, status, startDate, endDate } = req.query
+
+  limit = parseInt(limit) || 8
+  page = parseInt(page) || 1
+
+  const skip = (page - 1) * limit;
+
+  try {
+    let eventQuery = {}
+    if (status) eventQuery.status = status
+
+    if (startDate && endDate) {
+      eventQuery.date = { $gte: startDate, $lte: endDate }
+    }
+
+    let events = await Event.find(eventQuery).skip(skip).limit(limit)
+    let eventNBP = await Event.find(eventQuery)  // events list not by pagination
+
+    if (events.length === 0) return sendRespone(res, { data: [] }, "Không thể tìm thấy sự kiện!")
+
+    const totalEvents = await Event.countDocuments(eventQuery)
+
+    const totalPages = Math.ceil(totalEvents / limit)
+
+    const pagination = {
+      totalItems: totalEvents,
+      currentPage: page,
+      totalPages: totalPages
+    }
+
+    const totalProfitByPagination = events.reduce((acc, event) => acc + event.profit, 0)
+    const totalProfit = eventNBP.reduce((acc, event) => acc + event.profit, 0)
+    return sendRespone(res, { data: events, totalProfitByPagination, totalProfit},
+    `${totalEvents} sự kiện đã được tìm thấy!`, 201, pagination)
+  } catch (error) {
+    next(error)
+  }
+}
+
+const updateEventProfit = async (req, res, next) => {
+  let { eventId, profitToAdd } = req.query
+
+  try {
     let query = {}
 
-    if (status !== undefined) query.status = status;
+    if (eventId) query._id = eventId
 
-    const events = await Event.find(query).skip(skip).limit(limit)
+    const foundEvent = await Event.findOne(query)
 
-    if (events.length === 0) {
-      const error = new Error("Không thể tìm thấy sự kiện!")
-      error.status = 404
-      throw error 
-    }
+    if (!foundEvent) return sendRespone(res, { data: [] }, "Không thể tìm thấy sự kiện!")
 
-    const totalEvents = await Event.countDocuments(query)
+    foundEvent.profit += parseFloat(profitToAdd)
 
-    const totalPages = Math.ceil(totalEvents / limit)
-
-    return res.status(201).json({ 
-      data: [
-        { data: events }
-      ], 
-      pagination: {
-        totalItems: totalEvents,
-        currentPage: page,
-        totalPages: totalPages
-      },
-      message: `${totalEvents} kiểu sự kiện đã được tìm thấy!` 
-    })
+    await foundEvent.save()
+    return sendRespone(res, { data: foundEvent }, "Cập nhật doanh thu sự kiện thành công!")
   } catch (error) {
     next(error)
   }
-}
-
-const getListEventsByName = async (req, res, next) => {
-  let { page, limit, status, keyword } = req.query
-  page = parseInt(page) || 1
-  limit = parseInt(limit) || 10
-  if (!status) status = undefined
-
-  const skip = (page - 1) * limit
-
-  try {
-    let query = {};
-    if (keyword) query = query = { name: { $regex: new RegExp(keyword, 'i') } }
-    if (status) query.status = status
-
-    // console.log(keyword)
-    // console.log(query)
-
-    const events = await Event.find(query).skip(skip).limit(limit)
-
-    if (events.length === 0) {
-      const error = new Error("Không thể tìm thấy sự kiện!")
-      error.status = 404
-      throw error 
-    }
-
-    const totalEvents = await Event.countDocuments(query)
-    const totalPages = Math.ceil(totalEvents / limit)
-
-    return res.status(201).json({ 
-      data: [
-        { data: events }
-      ], 
-      pagination: {
-        totalItems: totalEvents,
-        currentPage: page,
-        totalPages: totalPages
-      },
-      message: `${totalEvents} người dùng được tìm thấy!`
-    })
-  } catch (error) {
-    next(error)
-  }
-}
-
-const getListEventsByHost = async (req, res, next) => {
-  let { page, limit, status, type, keyword } = req.query
-  page = parseInt(page) || 1
-  limit = parseInt(limit) || 10
-  if (!status) status = undefined
-
-  const skip = (page - 1) * limit
-
-  try {
-    let userQuery = {}
-    // if (keyword) userQuery = { fullName: { $regex: new RegExp(keyword, 'i') } }
-    if (keyword) userQuery = { fullName: keyword }
-    if (status) userQuery.status = status
-    if (type) userQuery.type = { $in: [parseInt(type)] }
-    
-
-    console.log(userQuery)
-
-    const users = await User.find(userQuery)
-
-    if (users.length === 0) {
-      const error = new Error("Không thể tìm thấy người dùng!")
-      error.status = 404
-      throw error 
-    }
-
-    const userIds = users.map(user => user._id)
-
-    console.log(userIds)
-
-    const eventQuery = { host: { $in: userIds } }
-
-    const events = await Event.find(eventQuery).skip(skip).limit(limit)
-
-    if (events.length === 0) {
-      const error = new Error("Không thể tìm thấy sự kiện!")
-      error.status = 404
-      throw error 
-    }
-
-    const totalEvents = await Event.countDocuments(eventQuery)
-    const totalPages = Math.ceil(totalEvents / limit)
-
-    return res.status(201).json({ 
-      data: [
-        { data: events }
-      ], 
-      pagination: {
-        totalItems: totalEvents,
-        currentPage: page,
-        totalPages: totalPages
-      },
-      message: `${totalEvents} sự kiện được tìm thấy!`
-    })
-  } catch (error) {
-    next(error)
-  }
-}
-
-const getListEventsByMember = async (req, res, next) => {
-  let { page, limit, status, type, keyword } = req.query
-  page = parseInt(page) || 1
-  limit = parseInt(limit) || 10
-  if (!status) status = undefined
-
-  const skip = (page - 1) * limit
-
-  try {
-    let userQuery = {}
-    // if (keyword) userQuery = { fullName: { $regex: new RegExp(keyword, 'i') } }
-    if (keyword) userQuery = { fullName: keyword }
-    if (status) userQuery.status = status
-    if (type) userQuery.type = { $in: [parseInt(type)] }
-
-    console.log(userQuery)
-
-    const users = await User.find(userQuery)
-
-    if (users.length === 0) {
-      const error = new Error("Không thể tìm thấy người dùng!")
-      error.status = 404
-      throw error 
-    }
-
-    const userIds = users.map(user => user._id)
-
-    const eventQuery = { members: { $elemMatch: { $in: userIds } } }
-
-    const events = await Event.find(eventQuery).skip(skip).limit(limit)
-
-    if (events.length === 0) {
-      const error = new Error("Không thể tìm thấy sự kiện!")
-      error.status = 404
-      throw error 
-    }
-
-    const totalEvents = await Event.countDocuments(eventQuery)
-    const totalPages = Math.ceil(totalEvents / limit)
-
-    return res.status(201).json({ 
-      data: [
-        { data: events }
-      ], 
-      pagination: {
-        totalItems: totalEvents,
-        currentPage: page,
-        totalPages: totalPages
-      },
-      message: `${totalEvents} sự kiện được tìm thấy!`
-    })
-  } catch (error) {
-    next(error)
-  }
-}
-
-const getListEventsByHostOrMember = async (req, res, next) => {
-  let { page, limit, status, type, keyword } = req.query
-  page = parseInt(page) || 1
-  limit = parseInt(limit) || 10
-  if (!status) status = undefined
-
-  const skip = (page - 1) * limit
-
-  try {
-    let userQuery = {}
-    // if (keyword) userQuery = { fullName: { $regex: new RegExp(keyword, 'i') } }
-    if (keyword) userQuery = { fullName: keyword }
-    if (status) userQuery.status = status
-    if (type) userQuery.type = { $in: [parseInt(type)] }
-    
-    console.log(userQuery)
-
-    const users = await User.find(userQuery)
-
-    if (users.length === 0) {
-      const error = new Error("Không thể tìm thấy người dùng!")
-      error.status = 404
-      throw error 
-    }
-
-    const userIds = users.map(user => user._id)
-
-    console.log(userIds)
-
-    const eventQuery = { 
-      $or: [
-        { host: { $in: userIds } },
-        { members: { $elemMatch: { $in: userIds } } }
-      ]
-    }
-
-    const events = await Event.find(eventQuery).skip(skip).limit(limit)
-
-    if (events.length === 0) {
-      const error = new Error("Không thể tìm thấy sự kiện!")
-      error.status = 404
-      throw error 
-    }
-
-    const totalEvents = await Event.countDocuments(eventQuery)
-    const totalPages = Math.ceil(totalEvents / limit)
-
-    return res.status(201).json({ 
-      data: [
-        { data: events }
-      ], 
-      pagination: {
-        totalItems: totalEvents,
-        currentPage: page,
-        totalPages: totalPages
-      },
-      message: `${totalEvents} sự kiện được tìm thấy!`
-    })
-  } catch (error) {
-    next(error)
-  }
-}
-
-const getListEventsByType = async (req, res, next) => {
-
-}
-
-const getListEventsByPlace = async (req, res, next) => {
-
-}
-
-const getListEventsByDate = async (req, res, next) => {
-
 }
 
 const deactivateEvent = async (req, res, next) => {
-
-}
-
-const activateEvent = async (req, res, next) => {
-
-}
-
-const getEventById = async (req, res, next) => {      // Get user by id (get)
-  const { eventID } = req.value.params
+  let { eventId } = req.query
 
   try {
-    const event = await Event.findById(eventID)
+    let query = {};
 
-    if (!event) {
-      const error = new Error("Không thể tìm thấy sự kiện!")
-      error.status = 404
-      throw error
-    }
+    if (eventId) query._id = eventId
 
-    return res.status(201).json({ 
-      data: [
-        { data: event }
-      ], 
-      pagination: {},
-      message: "Sự kiện đã được tìm thấy!" 
-    })
+    const foundEvent = await Event.findOne(query)
+
+    if (!foundEvent) return sendRespone(res, { data: [] }, "Không thể tìm thấy sự kiện!")
+
+    foundEvent.status = 1
+    await foundEvent.save()
+
+    return sendRespone(res, { data: foundEvent }, "Mở khóa sự kiện thành công!")
   } catch (error) {
     next(error)
   }
 }
 
-const updateEventById = async (req, res, next) => {   // Update event by id (patch)
-  const { eventID } = req.value.params
+const activateEvent = async (req, res, next) => {
+  let { eventId } = req.query
 
   try {
-    const foundEvent = await Event.findById(eventID)
+    let query = {};
 
-    if (!foundEvent) {
-      const error = new Error("Không thể tìm thấy sự kiện!")
-      error.status = 404
-      throw error 
-    }
+    if (eventId) query._id = eventId
+
+    const foundEvent = await Event.findOne(query)
+
+    if (!foundEvent) return sendRespone(res, { data: [] }, "Không thể tìm thấy sự kiện!")
+
+    foundEvent.status = 0
+    await foundEvent.save()
+
+    return sendRespone(res, { data: foundEvent }, "Mở khóa sự kiện thành công!")
+  } catch (error) {
+    next(error)
+  }
+}
+
+const updateEvent = async (req, res, next) => {   // Update event by id (patch)
+  const { eventId } = req.query
+
+  try {
+    const foundEvent = await Event.findById(eventId)
+
+    if (!foundEvent) return sendRespone(res, { data: [] }, "Không thể tìm thấy sự kiện!")
 
     const newEvent = req.value.body
 
-    const updateEvent = await Event.findByIdAndUpdate(eventID, newEvent)
+    const updateEvent = await Event.findByIdAndUpdate(eventId, newEvent)
 
-    return res.status(201).json({ 
-      data: [
-        { data: newEvent }
-      ], 
-      paganition: {},
-      message: "Cập nhật thông tin sự kiện thành công!" 
-    })
+    return sendRespone(res, { data: newEvent }, "Cập nhật thông tin sự kiện thành công!") 
   } catch (error) {
     next(error)
   }
@@ -353,18 +209,11 @@ const updateEventById = async (req, res, next) => {   // Update event by id (pat
 
 // Export controllers
 module.exports = {
-  getListEvents, 
-  getListEventsByName,
-  getListEventsByHost,
-  getListEventsByMember,
-  getListEventsByHostOrMember,
-  getListEventsByType,
-  getListEventsByPlace,
-  getListEventsByDate,
-  getEventById,
+  getEvents, 
+  getRevenue,
   createNewEvent,
-  getEventById,
-  updateEventById,
+  updateEvent,
+  updateEventProfit,
   deactivateEvent,
   activateEvent
 }

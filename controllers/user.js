@@ -28,6 +28,15 @@ const transporter = nodemailer.createTransport({
   }
 })
 
+// Respone function
+const sendRespone = (res, data, message, status = 201, pagination = {}) =>{
+  return res.status(status).json({
+    data: [ data ],
+    pagination,
+    message
+  })
+}
+
 // Redis databases configs
 const client = redis.createClient();
 
@@ -38,16 +47,7 @@ const signIn = async (req, res, next) => {           // LogIn (post)
   delete user.password
 
   res.setHeader('Authorization', token)
-  return res.status(201).json({ 
-    data: [
-      { 
-        data: user,
-        token: token 
-      },
-    ], 
-    pagination: {},
-    message: "Đăng nhập thành công!" 
-  })
+  return sendRespone(res, { data: user, token}, "Đăng nhập thành công!")
 }
 
 const signUp = async (req, res, next) => {           // SignUp (post)
@@ -56,11 +56,7 @@ const signUp = async (req, res, next) => {           // SignUp (post)
   try {
     // Check if there is a user with the same user
     const foundUser = await User.findOne({ email })
-    if (foundUser) {
-      const error = new Error("Email đã được sử dụng!")
-      error.status = 403
-      throw error
-    }
+    if (foundUser) return sendRespone(res, { data: []}, "Email đã được sử dụng!")
 
     // Create a new user
     const newUser = new User({ fullName, email, phone, birthDay, password, type: 0})
@@ -73,16 +69,7 @@ const signUp = async (req, res, next) => {           // SignUp (post)
     delete user.password
 
     res.setHeader('Authorization', token)
-      return res.status(201).json({ 
-      data: [
-        { 
-          data: user,
-          token: token
-        }
-      ], 
-      pagination: {},
-      message: "Tạo tài khoản mới thành công!" 
-    })
+    return sendRespone(res, { data: user, token }, "Tạo tài khoản thành công!") 
   } catch (error) {
     next(error)
   }
@@ -130,11 +117,7 @@ const forgotPassword = async (req, res, next) => {
 
     const user = await User.findOne(query);
 
-    if (!user) {
-      const error = new Error("Không thể tìm thấy email!");
-      error.status = 404;
-      throw error;
-    }
+    if (!user) return sendRespone(res, { data: [] }, "Không thể tìm thấy email!")
 
     const OTP = Math.floor(1000 + Math.random() * 9000);
 
@@ -146,17 +129,11 @@ const forgotPassword = async (req, res, next) => {
     };
 
     await transporter.sendMail(mailOptions);
-    return res.status(201).json({ 
-      data: { 
-        user,
-        status: true
-      },
-      message: 'Đã gửi email!'
-    });
+    return sendRespone(res, { data: user, status: true}, "Đăng nhập thành công!")
   } catch (error) {
-    next(error);
+    next(error)
   }
-};
+}
 
 const verifyOTP = async (req, res, next) => {
   const { email, otp } = req.body;
@@ -166,24 +143,15 @@ const verifyOTP = async (req, res, next) => {
     const storedOTP = await client.get(email)
 
     if (storedOTP === otp) {
-      client.del(email);
-      res.status(201).json({ 
-        data: [
-          { 
-            data: users,
-            status: true
-          }
-        ], 
-        pagination: {},
-        message: 'Xác thực người OPT thành công!'
-      });
+      client.del(email)
+      return sendRespone(res, { data: user, staus: true }, "Xác thực OPT thành công!")
     } else {
-      const error = new Error("Lỗi trong quá trình xác thực OPT!");
-      error.status = 500;
-      throw error;
+      const error = new Error("Lỗi trong quá trình xác thực OPT!")
+      error.status = 500
+      throw error
     }
   } catch (error) {
-    next(error);
+    next(error)
   }
 }
 
@@ -209,27 +177,18 @@ const getUsers = async (req, res, next) => {
 
     const users = await User.find(query).skip(skip).limit(limit).select("-password -authGoogleID")
 
-    // console.log(users)
-
-    if (users.length === 0) {
-      const error = new Error("Không thể tìm thấy tài khoản người dùng!")
-      error.status = 404
-      throw error
-    }
+    if (users.length === 0) return sendRespone(res, { data: [] }, "Không thể tìm thấy người dùng!")
 
     const totalUsers = await User.countDocuments(query)
     const totalPages = Math.ceil(totalUsers / limit)
 
-    return res.status(201).json({
-      data: [
-        { data: users }
-      ],
-      pagination: {
-        totalItems: totalUsers,
-        currentPage: page,
-        totalPages: totalPages
-      }
-    }) 
+    const pagination = {
+      totalItems: totalUsers,
+      currentPage: page,
+      totalPages: totalPages
+    }
+    return sendRespone(res, { data: users }, `${totalUsers} người dùng đã được tìm thấy`,
+    201, pagination)
   } catch (error) {
     next(error)
   }
@@ -238,8 +197,6 @@ const getUsers = async (req, res, next) => {
 const createNewUser = async (req, res, next) => {   // Create user
   const newUser = new User(req.value.body)
 
-  // console.log(newUser.type)
-
   if (newUser.type === undefined) newUser.type = 1;
 
   await newUser.save()
@@ -247,13 +204,7 @@ const createNewUser = async (req, res, next) => {   // Create user
   const user = newUser.toObject()
   delete user.password
 
-  return res.status(201).json({ 
-    data: [
-      { data: user }
-    ], 
-    pagination: {},
-    message: "Tạo người dùng mới thành công!" 
-  })
+  return sendRespone(res, { data: user }, "Tạo người dùng mới thành công!")
 }
 
 const updateUserById = async (req, res, next) => {   // Update user by id (patch)
@@ -262,23 +213,13 @@ const updateUserById = async (req, res, next) => {   // Update user by id (patch
   try {
     const foundUser = await User.findById(userId).select("-password -authGoogleID")
 
-    if (!foundUser) {
-      const error = new Error("Không thể tìm thấy tài khoản người dùng!")
-      error.status = 404
-      throw error 
-    }
+    if (!foundUser) return sendRespone(res, { data: [] }, "Không thể tìm thấy tài khoản người dùng!")
 
     const newUser = req.value.body
 
     const updateCustomer = await User.findByIdAndUpdate(userId, newUser)
 
-    return res.status(201).json({ 
-      data: [
-        { data: newUser }
-      ], 
-      pagination: {},
-      message: "Cập nhật thông tin người dùng thành công!" 
-    })
+    return sendRespone(res, { data: newUser }, "Cập nhật thông tin người dùng thành công!")
   } catch (error) {
     next(error)
   }
@@ -295,22 +236,12 @@ const deactivateAccount = async (req, res, next) => {     // Deactivating accoun
 
     const foundUser = await User.findOne(query)
 
-    if (!foundUser) {
-      const error = new Error("Không thể tìm thấy người dùng!")
-      error.status = 404
-      throw error
-    }
-    
+    if (!foundUser) return sendRespone(res, { data: [] }, "Không thể tìm thấy tài khoản người dùng!") 
+     
     foundUser.status = 1
     await foundUser.save()
 
-    return res.status(201).json({ 
-      data: [
-        { data: { status: foundUser.status } }
-      ], 
-      pagination: {},
-      message: "Khóa tài khoản thành công!" 
-    })
+    return sendRespone(res, { data: foundUser }, "Khóa tài khoản thành công!")
   } catch (error) {
     next(error)
   }
@@ -320,7 +251,6 @@ const activateAccount = async (req, res, next) => {     // Activating account by
   let { userId, email } = req.query
 
   try {
-
     const query = {}
 
     if (userId) query._id = userId
@@ -328,22 +258,12 @@ const activateAccount = async (req, res, next) => {     // Activating account by
 
     const foundUser = await User.findOne(query)
 
-    if (!foundUser) {
-      const error = new Error("Không thể tìm thấy người dùng!")
-      error.status = 404
-      throw error
-    }
+    if (!foundUser) return sendRespone(res, { data: [] }, "Không thể tìm thấy tài khoản người dùng!")
     
     foundUser.status = 0
     await foundUser.save()
 
-    return res.status(201).json({ 
-      data: [
-        { data: { status: foundUser.status } }
-      ], 
-      pagination: {},
-      message: "Mở khóa tài khoản thành công!" 
-    })
+    return sendRespone(res, { data: foundUser }, "Mở khóa tìa khoản thành công!")
   } catch (error) {
     next(error)
   }

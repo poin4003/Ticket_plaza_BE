@@ -1,6 +1,15 @@
 // Import module for user controller
 const EventType = require('../models/EventType')
 
+// Respone function
+const sendRespone = (res, data, message, status = 201, pagination = {}) =>{
+  return res.status(status).json({
+    data: [ data ],
+    pagination,
+    message
+  })
+}
+
 // Controllers for EventType
 const getEvents = async (req, res, next) => {     // Get a eventType list
   let { page, limit, status, eventTypeId, typeId, eventTypeName } = req.query
@@ -19,27 +28,19 @@ const getEvents = async (req, res, next) => {     // Get a eventType list
 
     const eventTypes = await EventType.find(query).skip(skip).limit(limit)
 
-    if (eventTypes.length === 0) {
-      const error = new Error("Không thể tìm thấy kiểu sự kiện!")
-      error.status = 404
-      throw error 
-    }
+    if (eventTypes.length === 0) return sendRespone(res, { data: [] }, "Không thể tìm thấy kiểu sự kiện!")
 
     const totalEventTypes = await EventType.countDocuments(query)
-
     const totalPages = Math.ceil(totalEventTypes / limit)
 
-    return res.status(201).json({ 
-      data: [
-        { data: eventTypes }
-      ], 
-      pagination: {
-        totalItems: totalEventTypes,
-        currentPage: page,
-        totalPages: totalPages
-      },
-      message: `${totalEventTypes} kiểu sự kiện đã được tìm thấy!` 
-    })
+    const pagination = {
+      totalItems: totalEventTypes,
+      currentPage: page,
+      totalPages: totalPages
+    }
+
+    return sendRespone(res, { data: eventTypes }, `${totalEventTypes} kiểu sự kiện đã được tìm thấy!`,
+    201, pagination)
   } catch (error) {
     next(error)
   }
@@ -56,23 +57,13 @@ const updateEventType = async (req, res, next) => {
 
     const eventType = await EventType.findOne(query)
 
-    if (!eventType) {
-      const error = new Error("Không thể tìm thấy kiểu sự kiện")
-      error.status = 404
-      throw error
-    }
-
+    if (!eventType) return sendRespone(res, { data: [] }, "Không thể tìm thấy kiểu sự kiện!")
+    
     const newEventType = req.value.body
 
     const udpateEventType = await EventType.findByIdAndUpdate(eventType._id, newEventType)
 
-    return res.status(201).json({ 
-      data: [
-        { data: newEventType }
-      ], 
-      pagination: {},
-      message: `Cập nhật thông tin kiểu sự kiện thành công!`
-    })
+    return sendRespone(res, { data: newEventType }, "Cập nhật kiểu sự kiện thành công!")
   } catch (error) {
     next(error)
   }
@@ -85,13 +76,7 @@ const createEventType = async (req, res, next) => {   // Create eventType
 
   await newEventType.save()
 
-  return res.status(201).json({ 
-    data: [
-      { data: newEventType }
-    ], 
-    pagination: {},
-    message: "Tạo kiểu sự kiện mới thành công!" 
-  })
+  return sendRespone(res, { data: newEventType }, "Tạo kiểu sự kiện mới thành công!")
 }
 
 const activateEventType = async (req, res, next) => {     // Activating eventype by id
@@ -105,22 +90,12 @@ const activateEventType = async (req, res, next) => {     // Activating eventype
 
     const foundEventType = await EventType.findOne(query)
 
-    if (!foundEventType) {
-      const error = new Error("Không thể tìm thấy kiểu sự kiện!")
-      error.status = 404
-      throw error
-    }
+    if (!foundEventType) return sendRespone(res, { data: [] }, "Không thể tìm thấy kiểu sự kiện!")
 
     foundEventType.status = 0
     await foundEventType.save()
 
-    return res.status(201).json({ 
-      data: [
-        { data: { status: foundEventType.status } }
-      ], 
-      pagination: {},
-      message: "Mở khóa kiểu sự kiện thành công!" 
-    })
+    return sendRespone(res, { data: foundEventType }, "Mở khóa kiểu sự kiện thành công!")
   } catch (error) {
     next(error)
   }
@@ -137,22 +112,12 @@ const deavtivateEventType = async (req, res, next) => {     // Deactivating even
 
     const foundEventType = await EventType.findOne(query)
 
-    if (!foundEventType) {
-      const error = new Error("Không thể tìm thấy kiểu sự kiện!")
-      error.status = 404
-      throw error
-    }
+    if (!foundEventType) return sendRespone(res, { data: [] }, "Không thể tìm thấy kiểu sự kiện!")
 
     foundEventType.status = 1
     await foundEventType.save()
 
-    return res.status(201).json({ 
-      data: [
-        { data: { status: foundEventType.status } }
-      ], 
-      pagination: {},
-      message: "Khóa kiểu sự kiện thành công!" 
-    })
+    return sendRespone(res, { data: foundEventType }, "Khóa kiểu sự kiện thành công!")
   } catch (error) {
     next(error)
   }

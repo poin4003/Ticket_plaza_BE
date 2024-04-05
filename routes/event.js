@@ -15,38 +15,32 @@ const passportConfig = require('../middlewares/passport')
 // Routes
 router.route('/')
   .get(passport.authenticate('jwt', { session: false }), 
-    EventController.getListEvents)
+    EventController.getEvents)
   .post(passport.authenticate('jwt', { session: false }),  
     validateBody(schemas.eventSchema), 
     EventController.createNewEvent)
 
-router.route('/getEventById/:eventID')  // Route for event with id
-  .get(passport.authenticate('jwt', { session: false }), 
-    validateParam(schemas.idSchema, 'eventID'), 
-    EventController.getEventById)
-
-router.route('/getListEventsByName')
+router.route('/getRevenue')
   .get(passport.authenticate('jwt', { session: false }),
-  EventController.getListEventsByName)
+    EventController.getRevenue)
 
-router.route('/getListEventsByHost')
-  .get(passport.authenticate('jwt', { session: false }),
-  EventController.getListEventsByHost)
-
-router.route('/getListEventsByMember')
-  .get(passport.authenticate('jwt', { session: false }),
-  EventController.getListEventsByMember)
-
-router.route('/getListEventsByHostOrMember')
-  .get(passport.authenticate('jwt', { session: false }),
-  EventController.getListEventsByHostOrMember)
-
-router.route('/udpateEventById/:eventID')
+router.route('/updateEvent')
   .patch(passport.authenticate('jwt', {session: false }), 
-    validateParam(schemas.idSchema, 'eventID'), 
     validateBody(schemas.eventOptionalSchema), 
-    EventController.updateEventById)
+    EventController.updateEvent)
 
+
+router.route('/updateEventProfit')
+  .patch(passport.authenticate('jwt', {session: false }),
+    EventController.updateEventProfit)
+    
+router.route('/deactivateEvent')
+  .patch(passport.authenticate('jwt', { session: false }),
+    EventController.deactivateEvent)
+
+router.route('/activateEvent')
+  .patch(passport.authenticate('jwt', { session: false }),
+    EventController.activateEvent)
 
 
 // Export module
