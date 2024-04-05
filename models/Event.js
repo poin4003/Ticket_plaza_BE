@@ -1,6 +1,5 @@
 // Import module for User model
 const mongoose = require('mongoose')     // Module for database handling
-const User = require('./User')
 const Schema = mongoose.Schema 
 
 const EventSchema = new Schema({
@@ -9,11 +8,11 @@ const EventSchema = new Schema({
   },
   host: {
     type: Schema.Types.ObjectId,
-    ref: User
+    ref: 'User'
   },
   members: [{
     type: Schema.Types.ObjectId,
-    ref: User
+    ref: 'User'
   }],
   description: {
     type: String

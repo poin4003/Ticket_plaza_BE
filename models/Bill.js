@@ -7,10 +7,12 @@ const BillSchema = new Schema({
     type: String
   },
   userId: {
-    type: Schema.Types.ObjectId
+    type: Schema.Types.ObjectId,
+    ref: 'User'
   },
   eventId: {
-    type: Schema.Types.ObjectId
+    type: Schema.Types.ObjectId,
+    ref: 'Event'
   },
   ticketsId: [{
     type: String

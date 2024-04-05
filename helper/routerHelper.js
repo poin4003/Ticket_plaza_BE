@@ -95,7 +95,7 @@ const schemas = {
     maxTicketPerBill: Joi.number().required()
   }),
 
-  eventOptionalSchema: Joi.object().keys({              // Validate schema for event (updating)
+  eventOptionalSchema: Joi.object().keys({       // Validate schema for event (updating)
     name: Joi.string().min(2),
     host: Joi.string().regex(/^[0-9a-fA-F]{24}$/),
     members: Joi.array().items(Joi.string().regex(/^[0-9a-fA-F]{24}$/)),
@@ -108,19 +108,19 @@ const schemas = {
     maxTicketPerBill: Joi.number()
   }),
 
-  eventTypeSchema: Joi.object().keys({                  // Validate schema for event type
+  eventTypeSchema: Joi.object().keys({            // Validate schema for event type
     typeId: Joi.string().min(2).required(),
     eventTypeName: Joi.string().required(),
     status: Joi.number()
   }),
 
-  eventTypeOptionalSchema: Joi.object().keys({          // Validate schema for event type (updating)
+  eventTypeOptionalSchema: Joi.object().keys({    // Validate schema for event type (updating)
     typeId: Joi.string().min(2),
     eventTypeName: Joi.string(),
     status: Joi.number()
   }),
 
-  ticketSchema: Joi.object().keys({
+  ticketSchema: Joi.object().keys({                // Validate schema for ticket
     eventId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
     name: Joi.string().min(2).required(),
     price: Joi.number().required(),
@@ -131,7 +131,7 @@ const schemas = {
     status: Joi.number() 
   }),
 
-  ticketOptionalSchema: Joi.object().keys({
+  ticketOptionalSchema: Joi.object().keys({         // Validate schema for ticket (updating)
     eventId: Joi.string().regex(/^[0-9a-fA-F]{24}$/),
     name: Joi.string().min(2),
     price: Joi.number(),
@@ -142,7 +142,7 @@ const schemas = {
     status: Joi.number() 
   }),
 
-  billSchema: Joi.object().keys({
+  billSchema: Joi.object().keys({                    // Validate schema for bill 
     date: Joi.string().required(),
     userId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
     eventId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
@@ -153,7 +153,7 @@ const schemas = {
     status: Joi.number().required()
   }),
   
-  billOptionalSchema: Joi.object().keys({
+  billOptionalSchema: Joi.object().keys({             // Validate schema for bill (updating)
     date: Joi.string(),
     userId: Joi.string().regex(/^[0-9a-fA-F]{24}$/),
     eventId: Joi.string().regex(/^[0-9a-fA-F]{24}$/),
@@ -164,7 +164,7 @@ const schemas = {
     status: Joi.number()
   }),
 
-  feetbackSchema: Joi.object().keys({
+  feetbackSchema: Joi.object().keys({                  // Validate schema for feetback
     billId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
     eventId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
     rate: Joi.number().max(5).required(),
@@ -172,7 +172,7 @@ const schemas = {
     photos: Joi.array().items(Joi.string()).required()
   }),
 
-  feetbackOptionalSchema: Joi.object().keys({
+  feetbackOptionalSchema: Joi.object().keys({          // Validate schema for feetback (updating)
     billId: Joi.string().regex(/^[0-9a-fA-F]{24}$/),
     eventId: Joi.string().regex(/^[0-9a-fA-F]{24}$/),
     rate: Joi.number().max(5),

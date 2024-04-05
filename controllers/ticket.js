@@ -1,5 +1,5 @@
 // Import module for event controller
-const Event = require('../models/Ticket')
+const Ticket = require('../models/Ticket')
 
 // Respone function
 const sendRespone = (res, data, message, status = 201, pagination = {}) =>{
@@ -12,12 +12,16 @@ const sendRespone = (res, data, message, status = 201, pagination = {}) =>{
 
 
 // Controller for ticket
-const createTicket = async (req, res, next) => {
+const createTicket = async (req, res, next) => {      // Create new ticket
+  const newTicket = new Ticket(req.body)
 
+  await newTicket.save()
+
+  return sendRespone(res, { data: newTicket }, "Tạo vé mới thành công!")
 }
 
-const getTickets = async (req, res, next) => {
-
+const getTickets = async (req, res, next) => {        // Get list ticket
+  
 }
 
 module.exports = {
