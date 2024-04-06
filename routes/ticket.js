@@ -19,4 +19,9 @@ router.route('/')
     validateBody(schemas.ticketSchema),
     TicketController.createTicket)
 
+router.route('/updateTicket')
+  .get(passport.authenticate('jwt', { session: false }),
+    validateBody(schemas.ticketOptionalSchema),
+    TicketController.updateTicket)
+
 module.exports = router

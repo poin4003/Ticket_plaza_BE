@@ -99,7 +99,7 @@ const getEvents = async (req, res, next) => {      // Get list event
 }
 
 const getRevenue = async (req, res, next) => {      // Get revenue
-  let { page, limit, status, startDate, endDate } = req.query
+  let { page, limit, status, startDate, endDate, sort } = req.query
 
   limit = parseInt(limit) || 8
   page = parseInt(page) || 1
@@ -122,6 +122,12 @@ const getRevenue = async (req, res, next) => {      // Get revenue
     const totalEvents = await Event.countDocuments(eventQuery)
 
     const totalPages = Math.ceil(totalEvents / limit)
+
+    if (sort === 'view') { 
+      events = sortEventsByViews(events)
+    } else {
+      events = sortEventsByDateTime(events)
+    }
 
     const pagination = {
       totalItems: totalEvents,
