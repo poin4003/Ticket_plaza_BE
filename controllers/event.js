@@ -44,7 +44,7 @@ const getEvents = async (req, res, next) => {      // Get list event
   limit = parseInt(limit) || 8
   page = parseInt(page) || 1
 
-  const skip = (page - 1) * limit;
+  const skip = (page - 1) * limit
 
   try {
     let eventQuery = {}
@@ -72,8 +72,8 @@ const getEvents = async (req, res, next) => {      // Get list event
 
     if (ticket && ticket == 'true') {
       const eventIds = events.map(event => event._id)
-      let tickets = await Ticket.find({ eventId: { $in: eventIds } })
-
+      let tickets = await Ticket.find({ eventId: { $in: eventIds } }).select("eventId _id price")
+      console.log(tickets);
       events = events.map(event => {
         const eventWithTickets = { event };
         eventWithTickets.tickets = tickets.filter(ticket => ticket.eventId.toString() === event._id.toString());
