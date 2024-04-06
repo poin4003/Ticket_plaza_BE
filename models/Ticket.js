@@ -3,10 +3,10 @@ const mongoose = require('mongoose')     // Module for database handling
 const Schema = mongoose.Schema 
 
 const TicketSchema = new Schema({
-  eventID: [{
+  eventId: {
     type: Schema.Types.ObjectId,
     ref: 'Event'
-  }],
+  },
   name: {
     type: String
   },

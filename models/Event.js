@@ -7,10 +7,12 @@ const EventSchema = new Schema({
     type: String
   },
   host: {
-    type: Schema.Types.ObjectId
+    type: Schema.Types.ObjectId,
+    ref: 'User'
   },
   members: [{
-    type: Schema.Types.ObjectId
+    type: Schema.Types.ObjectId,
+    ref: 'User'
   }],
   description: {
     type: String

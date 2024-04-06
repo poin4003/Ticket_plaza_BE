@@ -1,5 +1,6 @@
 // Import module for event controller
 const Event = require('../models/Event')
+const Ticket = require('../models/Ticket')
 
 // Respone function
 const sendRespone = (res, data, message, status = 201, pagination = {}) =>{
@@ -33,17 +34,17 @@ const createNewEvent = async (req, res, next) => {   // Create new Event
 
   await newEvent.save()
 
-  return sendRespone(res, { data: newEvent }, "Tạo sự kiện mới thành công") 
+  return sendRespone(res, { data: newEvent }, "Tạo sự kiện mới thành công!") 
 }
 
 const getEvents = async (req, res, next) => {      // Get list event
   let { page, limit, status, eventId, name, host, 
-    member, type, startDate, endDate, sort } = req.query
+    member, type, startDate, endDate, sort, ticket } = req.query
 
   limit = parseInt(limit) || 8
   page = parseInt(page) || 1
 
-  const skip = (page - 1) * limit;
+  const skip = (page - 1) * limit
 
   try {
     let eventQuery = {}
@@ -67,6 +68,17 @@ const getEvents = async (req, res, next) => {      // Get list event
       events = sortEventsByViews(events)
     } else {
       events = sortEventsByDateTime(events)
+    }
+
+    if (ticket && ticket == 'true') {
+      const eventIds = events.map(event => event._id)
+      let tickets = await Ticket.find({ eventId: { $in: eventIds } }).select("eventId _id price")
+      console.log(tickets);
+      events = events.map(event => {
+        const eventWithTickets = { event };
+        eventWithTickets.tickets = tickets.filter(ticket => ticket.eventId.toString() === event._id.toString());
+        return eventWithTickets;
+      })
     }
 
     const totalEvents = await Event.countDocuments(eventQuery)

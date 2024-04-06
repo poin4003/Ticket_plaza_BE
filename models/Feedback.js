@@ -3,10 +3,11 @@ const mongoose = require('mongoose')     // Module for database handling
 const Schema = mongoose.Schema 
 
 const FeetbackSchema = new Schema({
-  user_id: {
-    type: String
+  billId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Bill'
   },
-  event_id: {
+  eventId: {
     type: String
   },
   rate: {
