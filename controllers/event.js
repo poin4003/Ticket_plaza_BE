@@ -34,6 +34,22 @@ const sortEventsByViews = (events) => {
     return events
 }
 
+// Check and update status to 2
+const checkAndUpdateEventStatus = async (events) => {
+  const currentDate = new Date()
+
+  for (const event of events) {
+    if (event.status !== 1) {
+      const eventDate = dayjs(event.date).add(event.durationDate, 'days').toDate()
+
+      if (currentDate > eventDate) {
+        event.status = 2
+        await event.save()
+      }
+    }
+  }
+}
+
 // Controller for event
 const createNewEvent = async (req, res, next) => {   // Create new Event
   const newEvent = new Event(req.body)
@@ -65,7 +81,7 @@ const getEvents = async (req, res, next) => {      // Get list event
     if (startDate && endDate) {
         startDate = dayjs(startDate).startOf('day').toDate();
         endDate = dayjs(endDate).endOf('day').toDate();
-
+        
         eventQuery.date = { $gte: startDate, $lte: endDate };
     }
 
@@ -89,6 +105,8 @@ const getEvents = async (req, res, next) => {      // Get list event
         return eventWithTickets;
       })
     }
+
+    checkAndUpdateEventStatus(events)
 
     const totalEvents = await Event.countDocuments(eventQuery)
 
@@ -120,10 +138,10 @@ const getRevenue = async (req, res, next) => {      // Get revenue
     if (status) eventQuery.status = status
 
     if (startDate && endDate) {
-        startDate = dayjs(startDate).startOf('day').toDate();
-        endDate = dayjs(endDate).endOf('day').toDate();
+      startDate = dayjs(startDate).startOf('day').toDate();
+      endDate = dayjs(endDate).endOf('day').toDate();
 
-        eventQuery.date = { $gte: startDate, $lte: endDate };
+      eventQuery.date = { $gte: startDate, $lte: endDate };
     }
 
     let events = await Event.find(eventQuery).skip(skip).limit(limit)
@@ -140,6 +158,8 @@ const getRevenue = async (req, res, next) => {      // Get revenue
     } else {
       events = sortEventsByDateTime(events)
     }
+
+    checkAndUpdateEventStatus(events)
 
     const pagination = {
       totalItems: totalEvents,
