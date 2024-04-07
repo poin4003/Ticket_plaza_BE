@@ -209,6 +209,10 @@ const deactivateEvent = async (req, res, next) => {
 
     if (!foundEvent) return sendRespone(res, { data: [] }, "Không thể tìm thấy sự kiện!")
 
+    if (foundEvent.status === 2) {
+      return sendRespone(res, { data: [] }, "Không thể khóa sự kiện đã diễn ra!")
+    }
+
     foundEvent.status = 1
     await foundEvent.save()
 
