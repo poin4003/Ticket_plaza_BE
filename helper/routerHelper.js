@@ -44,22 +44,14 @@ const validateParam = (schema, name) => {
 
 // Middleware function for validating date time
 const dateTimeValidator = Joi.string().custom((value, helpers) => {
-    // Chuyển đổi ngày tháng thành đối tượng dayjs
-    const dateTime = dayjs(value, ['MM/DD/YYYY HH:mm', 'MM/DD/YYYY'], true);
-    
+    const dateTime = dayjs(value, 'YYYY-MM-DDTHH:mm:ss.SSSZ', true);
     if (!dateTime.isValid()) {
         return helpers.error('any.invalid');
     }
-    
-    // Lấy múi giờ của client
-    const clientUtcOffset = dayjs().utcOffset();
-
-    // Thêm múi giờ vào ngày tháng để giữ nguyên giá trị
-    const convertedDateTime = dateTime.utcOffset(clientUtcOffset).toDate();
-
-    // Trả về ngày tháng đã chuyển đổi dưới dạng object JavaScript
-    return convertedDateTime;
+    return value;
 }, 'Custom DateTime Validator');
+
+module.exports = dateTimeValidator;
 
 
 const schemas = {
