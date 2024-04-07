@@ -1,4 +1,5 @@
 // Import module for event controller
+const dayjs = require('dayjs')
 const Ticket = require('../models/Ticket')
 const Event = require('../models/Event')
 
@@ -12,7 +13,7 @@ const sendRespone = (res, data, message, status = 201, pagination = {}) =>{
 }
 
 // Sort events by date time
-const sortEventsByDateTime = (events) => {
+const sortTicketsByDateTime = (events) => {
   events.sort((a, b) => {
     const timeA = a.time ? a.time.split(':') : ['00', '00']
     const timeB = b.time ? b.time.split(':') : ['00', '00']
@@ -94,7 +95,34 @@ const updateTicket = async (req, res, next) => {
   }
 }
 
+const updateTicketTotalAmount = async (req, res, next) => {
+  let { ticketId, amountToMinus } = req.query 
 
+  try {
+    let query = {}
+
+    if (ticketId) query._id = ticketId
+
+    const foundTicket = await Ticket.findOne(query)
+
+    if (!foundTicket) return sendRespone(res, { data: [] }, "Không thể tìm thấy vé!")
+  
+    const foundEvent = await Event.findOne(foundTicket.eventId)
+
+    if (!foundEvent) return sendRespone(res, { data: [] }, "Không thể tìm thấy sự kiện chứa vé!")
+
+    if (foundEvent.maxTicketPerBill > amountToMinus) {
+      foundTicket.totalAmount -= amountToMinus
+      await foundTicket.save()
+    } else {
+      return sendRespone(res, { data: [] }, "Số vé vượt mức quy định!")
+    }
+
+    return sendRespone(res, { data: foundTicket }, "Cập nhật số lượng vé thành công!")
+  } catch (error) {
+    next(error)
+  }
+}
 
 const activateTicket = async (req, res, next) => {
   let { ticketId } = req.query
@@ -142,6 +170,7 @@ module.exports = {
   getTickets,
   createTicket,
   updateTicket,
+  updateTicketTotalAmount,
   activateTicket,
   deactivateTicket
 }
