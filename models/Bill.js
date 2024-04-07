@@ -4,7 +4,7 @@ const Schema = mongoose.Schema
 
 const BillSchema = new Schema({
   date: {
-    type: String
+    type: Date 
   },
   userId: {
     type: Schema.Types.ObjectId,

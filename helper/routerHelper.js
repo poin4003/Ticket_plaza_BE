@@ -1,5 +1,6 @@
 // Import module for validating
 const Joi = require('@hapi/joi')
+const dayjs = require('dayjs')
 
 // Middleware function for validating body
 const validateBody = (schema, name) => {
@@ -41,6 +42,26 @@ const validateParam = (schema, name) => {
   }
 }
 
+// Middleware function for validating date time
+const dateTimeValidator = Joi.string().custom((value, helpers) => {
+    // Chuyển đổi ngày tháng thành đối tượng dayjs
+    const dateTime = dayjs(value, ['MM/DD/YYYY HH:mm', 'MM/DD/YYYY'], true);
+    
+    if (!dateTime.isValid()) {
+        return helpers.error('any.invalid');
+    }
+    
+    // Lấy múi giờ của client
+    const clientUtcOffset = dayjs().utcOffset();
+
+    // Thêm múi giờ vào ngày tháng để giữ nguyên giá trị
+    const convertedDateTime = dateTime.utcOffset(clientUtcOffset).toDate();
+
+    // Trả về ngày tháng đã chuyển đổi dưới dạng object JavaScript
+    return convertedDateTime;
+}, 'Custom DateTime Validator');
+
+
 const schemas = {
   // Validate schemas
   idSchema: Joi.object().keys({                 // Vaidate schema for param
@@ -53,7 +74,7 @@ const schemas = {
     password: Joi.string().min(6).required(),
     email: Joi.string().min(2).required(),
     phone: Joi.string().max(10).min(10),    
-    birthDay: Joi.string()
+    birthDay: dateTimeValidator
   }),
 
   authSignInSchema: Joi.object().keys({         // Validate schema for login
@@ -66,7 +87,7 @@ const schemas = {
     password: Joi.string().min(6).required(),
     email: Joi.string().min(2).required(),
     phone: Joi.string().max(10).min(10).required(),
-    birthDay: Joi.string().required(),
+    birthDay: dateTimeValidator.required(),
     type: Joi.number().min(0).max(2),
     identityID: Joi.string().min(12).max(12)
   }), 
@@ -76,7 +97,7 @@ const schemas = {
     password: Joi.string().min(6),
     email: Joi.string().min(2),
     phone: Joi.string().max(10).min(10),
-    birthDay: Joi.string(),
+    birthDay: dateTimeValidator,
     type: Joi.number().min(1).max(2),
     identityID: Joi.string().min(12).max(12)
   }), 
@@ -90,8 +111,8 @@ const schemas = {
     photo: Joi.string().required(),
     type: Joi.string().required(),
     place: Joi.string().required(),
-    time: Joi.string().required(),
-    date: Joi.string().required(),
+    date: dateTimeValidator.required(),
+    durationDate: Joi.number().min(0),
     maxTicketPerBill: Joi.number().required()
   }),
 
@@ -103,8 +124,8 @@ const schemas = {
     photo: Joi.string(),
     type: Joi.string(),
     place: Joi.string(),
-    time: Joi.string(),
-    date: Joi.string(),
+    date: dateTimeValidator,
+    durationDate: Joi.number().min(0),
     maxTicketPerBill: Joi.number()
   }),
 
@@ -125,8 +146,8 @@ const schemas = {
     name: Joi.string().min(2).required(),
     price: Joi.number().required(),
     description: Joi.string().required(),
-    releaseDate: Joi.string().required(),
-    expirationDate: Joi.string().required(),
+    releaseDate: dateTimeValidator.required(),
+    expirationDate: dateTimeValidator.required(),
     totalAmount: Joi.number().required(),
     status: Joi.number() 
   }),
@@ -136,14 +157,14 @@ const schemas = {
     name: Joi.string().min(2),
     price: Joi.number(),
     description: Joi.string(),
-    releaseDate: Joi.string(),
-    expirationDate: Joi.string(),
+    releaseDate: dateTimeValidator,
+    expirationDate: dateTimeValidator,
     totalAmount: Joi.number(),
     status: Joi.number() 
   }),
 
   billSchema: Joi.object().keys({                    // Validate schema for bill 
-    date: Joi.string().required(),
+    date: dateTimeValidator.required(),
     userId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
     eventId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
     ticketsId: Joi.array().items(Joi.string().regex(/^[0-9a-fA-F]{24}$/)).required(),
@@ -154,7 +175,7 @@ const schemas = {
   }),
   
   billOptionalSchema: Joi.object().keys({             // Validate schema for bill (updating)
-    date: Joi.string(),
+    date: dateTimeValidator,
     userId: Joi.string().regex(/^[0-9a-fA-F]{24}$/),
     eventId: Joi.string().regex(/^[0-9a-fA-F]{24}$/),
     ticketsId: Joi.array().items(Joi.string().regex(/^[0-9a-fA-F]{24}$/)),

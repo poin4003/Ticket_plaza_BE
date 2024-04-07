@@ -19,7 +19,7 @@ const UserSchema = new Schema({
     type: String
   },
   birthDay: {
-    type: String
+    type: Date
   }, 
   password: {
     type: String

@@ -17,10 +17,10 @@ const TicketSchema = new Schema({
     type: String
   },
   releaseDate: {
-    type: String
+    type: Date
   },
   expirationDate: {
-    type: String
+    type: Date
   },
   totalAmount: {
     type: Number

@@ -20,8 +20,16 @@ router.route('/')
     TicketController.createTicket)
 
 router.route('/updateTicket')
-  .get(passport.authenticate('jwt', { session: false }),
+  .patch(passport.authenticate('jwt', { session: false }),
     validateBody(schemas.ticketOptionalSchema),
     TicketController.updateTicket)
+
+router.route('/activateTicket')
+  .patch(passport.authenticate('jwt', { session: false }),
+    TicketController.activateTicket)
+
+router.route('/deactivateTicket')
+  .patch(passport.authenticate('jwt', { session: false }),
+    TicketController.deactivateTicket)
 
 module.exports = router

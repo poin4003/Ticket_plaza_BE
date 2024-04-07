@@ -1,4 +1,5 @@
 // Import module for event controller
+const dayjs = require('dayjs')
 const Event = require('../models/Event')
 const Ticket = require('../models/Ticket')
 
@@ -14,19 +15,24 @@ const sendRespone = (res, data, message, status = 201, pagination = {}) =>{
 // Sort events by date time
 const sortEventsByDateTime = (events) => {
   events.sort((a, b) => {
-    const dateA = new Date(`${a.date} ${a.time}`)
-    const dateB = new Date(`${b.date} ${b.time}`)
+    const timeA = a.time ? a.time.split(':') : ['00', '00']
+    const timeB = b.time ? b.time.split(':') : ['00', '00']
+
+    const dateA = dayjs(a.date).startOf('day').add(parseInt(timeA[0]), 'hour').add(parseInt(timeA[1]), 'minute')
+    const dateB = dayjs(b.date).startOf('day').add(parseInt(timeB[0]), 'hour').add(parseInt(timeB[1]), 'minute') 
+    
     return dateA - dateB
   })
-  events.reverse();
+  events.reverse()
+
   return events
 }
 
 // Sort events by views
 const sortEventsByViews = (events) => {
-    events.sort((eventA, eventB) => eventB.views - eventA.views);
-    return events;
-};
+    events.sort((eventA, eventB) => eventB.views - eventA.views)
+    return events
+}
 
 // Controller for event
 const createNewEvent = async (req, res, next) => {   // Create new Event
@@ -57,7 +63,10 @@ const getEvents = async (req, res, next) => {      // Get list event
     if (status) eventQuery.status = status
 
     if (startDate && endDate) {
-      eventQuery.date = { $gte: startDate, $lte: endDate };
+        startDate = dayjs(startDate).startOf('day').toDate();
+        endDate = dayjs(endDate).endOf('day').toDate();
+
+        eventQuery.date = { $gte: startDate, $lte: endDate };
     }
 
     let events = await Event.find(eventQuery).skip(skip).limit(limit)
@@ -73,7 +82,7 @@ const getEvents = async (req, res, next) => {      // Get list event
     if (ticket && ticket == 'true') {
       const eventIds = events.map(event => event._id)
       let tickets = await Ticket.find({ eventId: { $in: eventIds } }).select("eventId _id price")
-      console.log(tickets);
+
       events = events.map(event => {
         const eventWithTickets = { event };
         eventWithTickets.tickets = tickets.filter(ticket => ticket.eventId.toString() === event._id.toString());
@@ -111,7 +120,10 @@ const getRevenue = async (req, res, next) => {      // Get revenue
     if (status) eventQuery.status = status
 
     if (startDate && endDate) {
-      eventQuery.date = { $gte: startDate, $lte: endDate }
+        startDate = dayjs(startDate).startOf('day').toDate();
+        endDate = dayjs(endDate).endOf('day').toDate();
+
+        eventQuery.date = { $gte: startDate, $lte: endDate };
     }
 
     let events = await Event.find(eventQuery).skip(skip).limit(limit)
@@ -169,7 +181,7 @@ const deactivateEvent = async (req, res, next) => {
   let { eventId } = req.query
 
   try {
-    let query = {};
+    let query = {}
 
     if (eventId) query._id = eventId
 
@@ -190,7 +202,7 @@ const activateEvent = async (req, res, next) => {
   let { eventId } = req.query
 
   try {
-    let query = {};
+    let query = {}
 
     if (eventId) query._id = eventId
 
