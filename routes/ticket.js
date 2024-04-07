@@ -24,6 +24,10 @@ router.route('/updateTicket')
     validateBody(schemas.ticketOptionalSchema),
     TicketController.updateTicket)
 
+router.route('/updateTicketTotalAmount')
+  .patch(passport.authenticate('jwt', { session: false }),
+    TicketController.updateTicketTotalAmount)
+
 router.route('/activateTicket')
   .patch(passport.authenticate('jwt', { session: false }),
     TicketController.activateTicket)
