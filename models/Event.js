@@ -1,4 +1,5 @@
 // Import module for User model
+const { number } = require('@hapi/joi')
 const mongoose = require('mongoose')     // Module for database handling
 const Schema = mongoose.Schema 
 
@@ -28,13 +29,12 @@ const EventSchema = new Schema({
     type: String,
     dafault: "Viet Nam"
   },
-  time: {
-    type: String,
-    default: "00:00"
-  },
   date: {
-    type: String,
-    default: "0/0/0"
+    type: Date
+  },
+  durationDate: {
+    type: Number,
+    default: 0
   },
   status: {
     type: Number,

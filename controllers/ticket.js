@@ -12,14 +12,19 @@ const sendRespone = (res, data, message, status = 201, pagination = {}) =>{
 }
 
 // Sort events by date time
-const sortTicketsByDateTime = (tickets) => {
-  tickets.sort((a, b) => {
-    const dateA = new Date(`${a.date} ${a.time}`)
-    const dateB = new Date(`${b.date} ${b.time}`)
+const sortEventsByDateTime = (events) => {
+  events.sort((a, b) => {
+    const timeA = a.time ? a.time.split(':') : ['00', '00']
+    const timeB = b.time ? b.time.split(':') : ['00', '00']
+
+    const dateA = dayjs(a.releaseDate).startOf('day').add(parseInt(timeA[0]), 'hour').add(parseInt(timeA[1]), 'minute')
+    const dateB = dayjs(b.releaseDate).startOf('day').add(parseInt(timeB[0]), 'hour').add(parseInt(timeB[1]), 'minute') 
+    
     return dateA - dateB
   })
-  tickets.reverse();
-  return tickets
+  events.reverse()
+
+  return events
 }
 
 // Controller for ticket
@@ -61,7 +66,7 @@ const getTickets = async (req, res, next) => {        // Get list ticket
       total: totalPages
     }
 
-    ticket = sortTicketsByDateTime(tickets)
+    tickets = sortTicketsByDateTime(tickets)
 
     return sendRespone(res, { data: tickets }, `${totalTickets} vé đã được tìm thấy`,
     201, pagination)
@@ -77,13 +82,57 @@ const updateTicket = async (req, res, next) => {
   try {
     const foundTicket = await Ticket.findById(ticketId)
 
-    if (!foundEvent) return sendRespone(res, { data: [] }, "Không thể tìm thấy vé!")
+    if (!foundTicket) return sendRespone(res, { data: [] }, "Không thể tìm thấy vé!")
 
     const newTicket = req.value.body 
     
-    const updateTicket = await Event.findByIdAndUpdate(ticketId, newTicket)
+    const updateTicket = await Ticket.findByIdAndUpdate(ticketId, newTicket)
 
     return sendRespone(res, { data: newTicket }, "Cập nhật thông tin vé thành công!")
+  } catch (error) {
+    next(error)
+  }
+}
+
+
+
+const activateTicket = async (req, res, next) => {
+  let { ticketId } = req.query
+
+  try {
+    let query = {}
+
+    if (ticketId) query._id = ticketId
+
+    const foundTicket = await Ticket.findOne(query)
+
+    if (!foundTicket) return sendRespone(res, { data: [] }, "Không thể tìm thấy vé!")
+
+    foundTicket.status = 0
+    await foundTicket.save()
+
+    return sendRespone(res, { data: foundTicket }, "Mở khóa vé thành công!")
+  } catch (error) {
+    next(error)
+  }
+}
+
+const deactivateTicket = async (req, res, next) => {
+  let { ticketId } = req.query
+
+  try {
+    let query = {}
+
+    if (ticketId) query._id = ticketId
+
+    const foundTicket = await Ticket.findOne(query)
+
+    if (!foundTicket) return sendRespone(res, { data: [] }, "Không thể tìm thấy vé!")
+
+    foundTicket.status = 1
+    await foundTicket.save()
+
+    return sendRespone(res, { data: foundTicket }, "Khóa vé thành công!")
   } catch (error) {
     next(error)
   }
@@ -92,5 +141,7 @@ const updateTicket = async (req, res, next) => {
 module.exports = {
   getTickets,
   createTicket,
-  updateTicket
+  updateTicket,
+  activateTicket,
+  deactivateTicket
 }
