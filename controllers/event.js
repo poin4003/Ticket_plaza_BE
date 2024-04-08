@@ -51,13 +51,17 @@ const checkAndUpdateEventStatus = async (events) => {
 }
 
 // Controller for event
+
 const createNewEvent = async (req, res, next) => {   // Create new Event
   console.log(req.body);
+  
+  const imageUrl = `${req.protocol}://${req.get('host')}/getImage/${req.body.photo}`
+
   const newEvent = new Event(req.body)
 
   await newEvent.save()
 
-  return sendRespone(res, { data: newEvent }, "Tạo sự kiện mới thành công!") 
+  return sendRespone(res, { data: newEvent, imageUrl:  imageUrl}, "Tạo sự kiện mới thành công!") 
 }
 
 const getEvents = async (req, res, next) => {      // Get list event

@@ -14,14 +14,11 @@ const passport = require('passport')
 const passportConfig = require('../middlewares/passport')
 
 // Routes
-router.route('/test')
-  .post(multerHelper.processUpload)
-
 router.route('/')
   .get(EventController.getEvents)
   .post(passport.authenticate('jwt', { session: false }),  
-    // validateBody(schemas.eventSchema), 
     multerHelper.processUpload,
+    validateBody(schemas.eventSchema), 
     EventController.createNewEvent)
 
 router.route('/getRevenue')

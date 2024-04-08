@@ -10,6 +10,8 @@ const mongoClient = require('mongoose')         // Module for database
 const bodyParser = require('body-parser')       // Module for body handler
 const secureApp = require('helmet')             // Module for security
 const cors = require('cors')                    // Module for CORS
+const path = require('path')
+const fs = require('fs')
 
 // Import environment files
 const usersRoute = require('./routes/user')            // Import user's route configs
@@ -72,6 +74,28 @@ app.use('/eventTypes', eventTypeRoute)  // Navigate to eventTypeRoute
 app.use('/tickets', ticketRoute)        // Navigate to ticketRoute
 app.use('/bills', billRoute)            // Navigate to billRoute
 app.use('/feetback', feetbackRoute)     // Navigate to feetbackRoute
+
+app.get('/getImage/:imageName', (req, res) => {
+  const imageName = req.params.imageName;
+  const imagePath = path.join(__dirname, 'Images', imageName);
+
+  // Kiểm tra xem file có tồn tại không
+  if (!fs.existsSync(imagePath)) {
+    return res.status(404).json({ message: 'Không tìm thấy ảnh' });
+  }
+
+  // Đọc dữ liệu từ file và gửi lại
+  fs.readFile(imagePath, (err, data) => {
+    if (err) {
+      console.error('Lỗi khi đọc file ảnh:', err);
+      return res.status(500).json({ message: 'Đã xảy ra lỗi khi đọc ảnh' });
+    }
+
+    // Set header và gửi dữ liệu về client
+    res.set('Content-Type', 'image/jpeg');
+    res.send(data);
+  });
+});
 
 // Error handler function
 app.use((err, req, res, next) => {
