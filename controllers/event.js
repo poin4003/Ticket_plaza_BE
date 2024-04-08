@@ -252,7 +252,7 @@ const updateEvent = async (req, res, next) => {   // Update event by id (patch)
 
     if (!foundEvent) return sendRespone(res, { data: [] }, "Không thể tìm thấy sự kiện!")
 
-    const newEvent = req.value.body
+    const newEvent = req.body
 
     const updateEvent = await Event.findByIdAndUpdate(eventId, newEvent)
 
