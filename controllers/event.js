@@ -52,6 +52,7 @@ const checkAndUpdateEventStatus = async (events) => {
 
 // Controller for event
 const createNewEvent = async (req, res, next) => {   // Create new Event
+  console.log(req.body);
   const newEvent = new Event(req.body)
 
   await newEvent.save()
@@ -208,6 +209,10 @@ const deactivateEvent = async (req, res, next) => {
     const foundEvent = await Event.findOne(query)
 
     if (!foundEvent) return sendRespone(res, { data: [] }, "Không thể tìm thấy sự kiện!")
+
+    if (foundEvent.status === 2) {
+      return sendRespone(res, { data: [] }, "Không thể khóa sự kiện đã diễn ra!")
+    }
 
     foundEvent.status = 1
     await foundEvent.save()

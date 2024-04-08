@@ -7,16 +7,22 @@ const EventController = require('../controllers/event')  // User controller
 
 // Import helper
 const { validateBody, validateParam, schemas } = require('../helper/routerHelper')
+const multerHelper = require('../helper/multerHelper')   // Import helper for multer handler
 
 // Import passport
 const passport = require('passport')
 const passportConfig = require('../middlewares/passport')
+const multer = require('multer')
 
 // Routes
+router.route('/test')
+  .post(multerHelper.processUpload)
+
 router.route('/')
   .get(EventController.getEvents)
   .post(passport.authenticate('jwt', { session: false }),  
     validateBody(schemas.eventSchema), 
+    multerHelper.processUpload,
     EventController.createNewEvent)
 
 router.route('/getRevenue')
