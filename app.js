@@ -56,6 +56,7 @@ app.use(cors({
   methods: "GET,POST,PUT,DELETE,PATCH",
   credentials: true
 }))
+app.use(express.static("./images"))
 
 // Routes
 app.get('/', (req, res, next) => {  // Test route

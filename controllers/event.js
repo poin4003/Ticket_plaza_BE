@@ -52,6 +52,7 @@ const checkAndUpdateEventStatus = async (events) => {
 
 // Controller for event
 const createNewEvent = async (req, res, next) => {   // Create new Event
+  console.log(req.body);
   const newEvent = new Event(req.body)
 
   await newEvent.save()
