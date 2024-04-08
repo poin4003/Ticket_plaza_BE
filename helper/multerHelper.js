@@ -12,7 +12,7 @@ const sendRespone = (res, data, message, status = 201, pagination = {}) =>{
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, '../images')
+    cb(null, 'Images')
   },
   filename: (req, file, cb) => {
     cb(null, Date.now() + path.extname(file.originalname))
@@ -24,25 +24,16 @@ const upload = multer({ storage: storage })
 
 // Middleware for saving file and send respone
 const processUpload = (req, res, next) => {
-  let file = req.file;
-  console.log(req.file);
-  console.log("Multer helper: ", file);
-  if (!file) {
-    return sendRespone(res, { data: [] }, "Không tìm thấy ảnh!"); 
-  }
-
-  const timestamp = Date.now();
-  const originalName = file.originalname;
-  const extension = path.extname(originalName);
-  const newFileName = `${timestamp}${extension}`;
-
-  fs.renameSync(file.path, `../Images/${newFileName}`);
-
-  // req.body.photo = newFileName;
-  // next();
-  return sendRespone(res, { data: newFileName }, "Đã gửi ảnh!");
-};
-
+  upload.single('photo')(req, res, (err) => {
+    if (err instanceof multer.MulterError) {
+      next(err)
+    } else if (err) {
+      next(err)
+    } else {
+      next()
+    }
+  })
+}
 
 // Export modules
 module.exports = {

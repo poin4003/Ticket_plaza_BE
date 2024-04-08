@@ -12,7 +12,6 @@ const multerHelper = require('../helper/multerHelper')   // Import helper for mu
 // Import passport
 const passport = require('passport')
 const passportConfig = require('../middlewares/passport')
-const multer = require('multer')
 
 // Routes
 router.route('/test')
@@ -21,7 +20,7 @@ router.route('/test')
 router.route('/')
   .get(EventController.getEvents)
   .post(passport.authenticate('jwt', { session: false }),  
-    validateBody(schemas.eventSchema), 
+    // validateBody(schemas.eventSchema), 
     multerHelper.processUpload,
     EventController.createNewEvent)
 
