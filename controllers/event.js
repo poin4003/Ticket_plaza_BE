@@ -23,8 +23,6 @@ const sortEventsByDateTime = (events) => {
     
     return dateA - dateB
   })
-  events.reverse()
-
   return events
 }
 
@@ -44,6 +42,9 @@ const checkAndUpdateEventStatus = async (events) => {
 
       if (currentDate > eventDate) {
         event.status = 2
+        await event.save()
+      } else if (currentDate <= eventDate) {
+        event.status = 0
         await event.save()
       }
     }
@@ -254,13 +255,16 @@ const updateEvent = async (req, res, next) => {   // Update event by id (patch)
   try {
     const foundEvent = await Event.findById(eventId)
 
-    if (!foundEvent) return sendRespone(res, { data: [] }, "Không thể tìm thấy sự kiện!")
+    var imageUrl = `${req.protocol}://${req.get('host')}/getImage/${req.body.photo}`
 
+    if (!foundEvent) return sendRespone(res, { data: [] }, "Không thể tìm thấy sự kiện!")
+    if (!req.file) imageUrl = ''
+    
     const newEvent = req.body
 
     const updateEvent = await Event.findByIdAndUpdate(eventId, newEvent)
 
-    return sendRespone(res, { data: newEvent }, "Cập nhật thông tin sự kiện thành công!") 
+    return sendRespone(res, { data: newEvent, imageUrl: imageUrl }, "Cập nhật thông tin sự kiện thành công!") 
   } catch (error) {
     next(error)
   }

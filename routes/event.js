@@ -27,6 +27,7 @@ router.route('/getRevenue')
 
 router.route('/updateEvent')
   .patch(passport.authenticate('jwt', {session: false }), 
+    multerHelper.processUpload,
     validateBody(schemas.eventOptionalSchema), 
     EventController.updateEvent)
 

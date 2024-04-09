@@ -23,7 +23,8 @@ const processUpload = (req, res, next) => {
     } else if (err) {
       next(err)
     } else {
-      req.body.photo = req.file.filename
+      console.log(req.file);
+      if (req.file) req.body.photo = req.file.filename
       next()
     }
   });
