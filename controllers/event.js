@@ -66,22 +66,22 @@ const getImage = async (req, res, next) => {
       const foundImage = await Event.findById(eventId).select('photo')
 
       if (!foundImage) {
-        return sendResponse(res, { data: [] }, "Không thể tìm thấy sự kiện!")
+        return sendRespone(res, { data: [] }, "Không thể tìm thấy sự kiện!")
       }
 
       imagePath = path.join(__dirname, '../Images', foundImage.photo)
     } else {
-      return sendResponse(res, { data: [] }, "Không tìm thấy ảnh!")
+      return sendRespone(res, { data: [] }, "Không tìm thấy ảnh!")
     }
 
     if (!fs.existsSync(imagePath)) {
-      return sendResponse(res, { data: [] }, "Không tìm thấy ảnh!")
+      return sendRespone(res, { data: [] }, "Không tìm thấy ảnh!")
     }
 
     fs.readFile(imagePath, (err, data) => {
       if (err) {
         console.error('Lỗi khi đọc file ảnh:', err)
-        return sendResponse(res, { data: [] }, "Đã xảy ra lỗi khi đọc hình ảnh!")
+        return sendRespone(res, { data: [] }, "Đã xảy ra lỗi khi đọc hình ảnh!")
       }
 
       res.set('Content-Type', 'image/jpeg')
@@ -93,13 +93,13 @@ const getImage = async (req, res, next) => {
 }
 
 const createNewEvent = async (req, res, next) => {   // Create new Event
-  console.log(req.body.file);
+  console.log(req.body);
   
-  if (req.body.file === 'undefined') {
+  if (req.file === undefined) {
     return sendRespone(res, { data: [] }, "Không tìm thấy ảnh!")
   }
 
-  const imageUrl = `${req.protocol}://${req.get('host')}/events/getImage?${req.body.photo}`
+  const imageUrl = `${req.protocol}://${req.get('host')}/events/getImage?imageName=${req.body.photo}`
 
   const newEvent = new Event(req.body)
 
@@ -298,7 +298,7 @@ const updateEvent = async (req, res, next) => {   // Update event by id (patch)
   try {
     const foundEvent = await Event.findById(eventId)
 
-    var imageUrl = `${req.protocol}://${req.get('host')}/events/getImage?${req.body.photo}`
+    var imageUrl = `${req.protocol}://${req.get('host')}/events/getImage?imageName=${req.body.photo}`
 
     if (!foundEvent) return sendRespone(res, { data: [] }, "Không thể tìm thấy sự kiện!")
     if (!req.file) imageUrl = ''
