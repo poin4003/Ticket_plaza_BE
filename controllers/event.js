@@ -2,6 +2,8 @@
 const dayjs = require('dayjs')
 const Event = require('../models/Event')
 const Ticket = require('../models/Ticket')
+const fs = require('fs')
+const path = require('path')
 
 // Respone function
 const sendRespone = (res, data, message, status = 201, pagination = {}) =>{
@@ -23,8 +25,6 @@ const sortEventsByDateTime = (events) => {
     
     return dateA - dateB
   })
-  events.reverse()
-
   return events
 }
 
@@ -45,19 +45,67 @@ const checkAndUpdateEventStatus = async (events) => {
       if (currentDate > eventDate) {
         event.status = 2
         await event.save()
+      } else if (currentDate <= eventDate) {
+        event.status = 0
+        await event.save()
       }
     }
   }
 }
 
 // Controller for event
+const getImage = async (req, res, next) => {
+  const { imageName, eventId } = req.query
+
+  try {
+    let imagePath = ''
+
+    if (imageName) {
+      imagePath = path.join(__dirname, '../Images', imageName)
+    } else if (eventId) {
+      const foundImage = await Event.findById(eventId).select('photo')
+
+      if (!foundImage) {
+        return sendRespone(res, { data: [] }, "Không thể tìm thấy sự kiện!")
+      }
+
+      imagePath = path.join(__dirname, '../Images', foundImage.photo)
+    } else {
+      return sendRespone(res, { data: [] }, "Không tìm thấy ảnh!")
+    }
+
+    if (!fs.existsSync(imagePath)) {
+      return sendRespone(res, { data: [] }, "Không tìm thấy ảnh!")
+    }
+
+    fs.readFile(imagePath, (err, data) => {
+      if (err) {
+        console.error('Lỗi khi đọc file ảnh:', err)
+        return sendRespone(res, { data: [] }, "Đã xảy ra lỗi khi đọc hình ảnh!")
+      }
+
+      res.set('Content-Type', 'image/jpeg')
+      res.send(data)
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
 const createNewEvent = async (req, res, next) => {   // Create new Event
   console.log(req.body);
+  
+  if (req.file === undefined) {
+    return sendRespone(res, { data: [] }, "Không tìm thấy ảnh!")
+  }
+
+  const imageUrl = `${req.protocol}://${req.get('host')}/events/getImage?imageName=${req.body.photo}`
+
   const newEvent = new Event(req.body)
 
   await newEvent.save()
 
-  return sendRespone(res, { data: newEvent }, "Tạo sự kiện mới thành công!") 
+  return sendRespone(res, { data: newEvent, imageUrl:  imageUrl}, "Tạo sự kiện mới thành công!") 
 }
 
 const getEvents = async (req, res, next) => {      // Get list event
@@ -250,13 +298,16 @@ const updateEvent = async (req, res, next) => {   // Update event by id (patch)
   try {
     const foundEvent = await Event.findById(eventId)
 
+    var imageUrl = `${req.protocol}://${req.get('host')}/events/getImage?imageName=${req.body.photo}`
+
     if (!foundEvent) return sendRespone(res, { data: [] }, "Không thể tìm thấy sự kiện!")
+    if (!req.file) imageUrl = ''
 
     const newEvent = req.body
 
     const updateEvent = await Event.findByIdAndUpdate(eventId, newEvent)
 
-    return sendRespone(res, { data: newEvent }, "Cập nhật thông tin sự kiện thành công!") 
+    return sendRespone(res, { data: newEvent, imageUrl: imageUrl }, "Cập nhật thông tin sự kiện thành công!") 
   } catch (error) {
     next(error)
   }
@@ -265,6 +316,7 @@ const updateEvent = async (req, res, next) => {   // Update event by id (patch)
 // Export controllers
 module.exports = {
   getEvents, 
+  getImage,
   getRevenue,
   createNewEvent,
   updateEvent,

@@ -10,6 +10,8 @@ const mongoClient = require('mongoose')         // Module for database
 const bodyParser = require('body-parser')       // Module for body handler
 const secureApp = require('helmet')             // Module for security
 const cors = require('cors')                    // Module for CORS
+const path = require('path')
+const fs = require('fs')
 
 // Import environment files
 const usersRoute = require('./routes/user')            // Import user's route configs

@@ -14,15 +14,15 @@ const passport = require('passport')
 const passportConfig = require('../middlewares/passport')
 
 // Routes
-router.route('/test')
-  .post(multerHelper.processUpload)
-
 router.route('/')
   .get(EventController.getEvents)
   .post(passport.authenticate('jwt', { session: false }),  
-    // validateBody(schemas.eventSchema), 
     multerHelper.processUpload,
+    validateBody(schemas.eventSchema), 
     EventController.createNewEvent)
+
+router.route('/getImage')
+  .get(EventController.getImage)
 
 router.route('/getRevenue')
   .get(passport.authenticate('jwt', { session: false }),
@@ -30,6 +30,7 @@ router.route('/getRevenue')
 
 router.route('/updateEvent')
   .patch(passport.authenticate('jwt', {session: false }), 
+    multerHelper.processUpload,
     validateBody(schemas.eventOptionalSchema), 
     EventController.updateEvent)
 
