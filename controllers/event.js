@@ -2,6 +2,8 @@
 const dayjs = require('dayjs')
 const Event = require('../models/Event')
 const Ticket = require('../models/Ticket')
+const fs = require('fs')
+const path = require('path')
 
 // Respone function
 const sendRespone = (res, data, message, status = 201, pagination = {}) =>{
@@ -52,11 +54,52 @@ const checkAndUpdateEventStatus = async (events) => {
 }
 
 // Controller for event
+const getImage = async (req, res, next) => {
+  const { imageName, eventId } = req.query
+
+  try {
+    let imagePath = ''
+
+    if (imageName) {
+      imagePath = path.join(__dirname, '../Images', imageName)
+    } else if (eventId) {
+      const foundImage = await Event.findById(eventId).select('photo')
+
+      if (!foundImage) {
+        return sendResponse(res, { data: [] }, "Không thể tìm thấy sự kiện!")
+      }
+
+      imagePath = path.join(__dirname, '../Images', foundImage.photo)
+    } else {
+      return sendResponse(res, { data: [] }, "Không tìm thấy ảnh!")
+    }
+
+    if (!fs.existsSync(imagePath)) {
+      return sendResponse(res, { data: [] }, "Không tìm thấy ảnh!")
+    }
+
+    fs.readFile(imagePath, (err, data) => {
+      if (err) {
+        console.error('Lỗi khi đọc file ảnh:', err)
+        return sendResponse(res, { data: [] }, "Đã xảy ra lỗi khi đọc hình ảnh!")
+      }
+
+      res.set('Content-Type', 'image/jpeg')
+      res.send(data)
+    })
+  } catch (error) {
+    next(error)
+  }
+}
 
 const createNewEvent = async (req, res, next) => {   // Create new Event
-  console.log(req.body);
+  console.log(req.body.file);
   
-  const imageUrl = `${req.protocol}://${req.get('host')}/getImage/${req.body.photo}`
+  if (req.body.file === 'undefined') {
+    return sendRespone(res, { data: [] }, "Không tìm thấy ảnh!")
+  }
+
+  const imageUrl = `${req.protocol}://${req.get('host')}/events/getImage?${req.body.photo}`
 
   const newEvent = new Event(req.body)
 
@@ -255,11 +298,11 @@ const updateEvent = async (req, res, next) => {   // Update event by id (patch)
   try {
     const foundEvent = await Event.findById(eventId)
 
-    var imageUrl = `${req.protocol}://${req.get('host')}/getImage/${req.body.photo}`
+    var imageUrl = `${req.protocol}://${req.get('host')}/events/getImage?${req.body.photo}`
 
     if (!foundEvent) return sendRespone(res, { data: [] }, "Không thể tìm thấy sự kiện!")
     if (!req.file) imageUrl = ''
-    
+
     const newEvent = req.body
 
     const updateEvent = await Event.findByIdAndUpdate(eventId, newEvent)
@@ -273,6 +316,7 @@ const updateEvent = async (req, res, next) => {   // Update event by id (patch)
 // Export controllers
 module.exports = {
   getEvents, 
+  getImage,
   getRevenue,
   createNewEvent,
   updateEvent,

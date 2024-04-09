@@ -21,6 +21,9 @@ router.route('/')
     validateBody(schemas.eventSchema), 
     EventController.createNewEvent)
 
+router.route('/getImage')
+  .get(EventController.getImage)
+
 router.route('/getRevenue')
   .get(passport.authenticate('jwt', { session: false }),
     EventController.getRevenue)
