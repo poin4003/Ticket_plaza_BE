@@ -318,14 +318,11 @@ const updateEvent = async (req, res, next) => {   // Update event by id (patch)
     if (req.file) {
       imagePath = path.join(__dirname, '../Images', req.file.filename);
       console.log(imagePath);
-    } else {
-      // Nếu không có file ảnh mới, sử dụng đường dẫn ảnh cũ từ request body
-      if (!req.body.photo) {
-        return sendRespone(res, { data: [] }, "Không tìm thấy đường dẫn ảnh!");
-      }
+    } else if (req.body.photo) {
       imagePath = path.join(__dirname, '../Images', req.body.photo);
       console.log(imagePath);
     }
+
 
     // Cập nhật thông tin sự kiện với dữ liệu mới từ request body
     const updateEvent = await Event.findByIdAndUpdate(eventId, req.body);
