@@ -161,7 +161,7 @@ const schemas = {
     eventId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
     ticketsId: Joi.array().items(Joi.string().regex(/^[0-9a-fA-F]{24}$/)).required(),
     totalPrice: Joi.number().required(),
-    discount: Joi.number().required(),
+    discount: Joi.number().min(0).max(100).required(),
     checkoutMethod: Joi.string().required(),
     status: Joi.number().required()
   }),
@@ -172,7 +172,7 @@ const schemas = {
     eventId: Joi.string().regex(/^[0-9a-fA-F]{24}$/),
     ticketsId: Joi.array().items(Joi.string().regex(/^[0-9a-fA-F]{24}$/)),
     totalPrice: Joi.number(),
-    discount: Joi.number(),
+    discount: Joi.number().min(0).max(100),
     checkoutMethod: Joi.string(),
     status: Joi.number()
   }),

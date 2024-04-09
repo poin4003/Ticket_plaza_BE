@@ -83,10 +83,12 @@ const getImage = async (req, res, next) => {
         console.error('Lỗi khi đọc file ảnh:', err)
         return sendRespone(res, { data: [] }, "Đã xảy ra lỗi khi đọc hình ảnh!")
       }
-
-      res.set('Content-Type', 'image/jpeg')
-      res.send(data)
+      // res.set('Content-Type', 'image/jpeg')
+      // res.send(data)
     })
+
+    console.log(imagePath);
+    return sendRespone(res, { data: imagePath }, "Đã tìm thấy ảnh!")
   } catch (error) {
     next(error)
   }
@@ -99,13 +101,22 @@ const createNewEvent = async (req, res, next) => {   // Create new Event
     return sendRespone(res, { data: [] }, "Không tìm thấy ảnh!")
   }
 
-  const imageUrl = `${req.protocol}://${req.get('host')}/events/getImage?imageName=${req.body.photo}`
+  let image = ''
+  if (req.body.photo) {
+    imagePath = path.join(__dirname, '../Images', req.body.photo)
+    console.log(imagePath)
+  } else {
+    return sendRespone(res, { data: [] }, "Không tìm thấy đường dẫn ảnh!")
+  }
 
+  // const imageUrl = `${req.protocol}://${req.get('host')}/events/getImage?imageName=${req.body.photo}`
+  
   const newEvent = new Event(req.body)
 
   await newEvent.save()
 
-  return sendRespone(res, { data: newEvent, imageUrl:  imageUrl}, "Tạo sự kiện mới thành công!") 
+  // return sendRespone(res, { data: newEvent, imageUrl:  imageUrl}, "Tạo sự kiện mới thành công!") 
+  return sendRespone(res, { data: newEvent, imageUrl:  imagePath}, "Tạo sự kiện mới thành công!") 
 }
 
 const getEvents = async (req, res, next) => {      // Get list event
@@ -293,25 +304,38 @@ const activateEvent = async (req, res, next) => {
 }
 
 const updateEvent = async (req, res, next) => {   // Update event by id (patch)
-  const { eventId } = req.query
+  const { eventId } = req.query;
 
   try {
-    const foundEvent = await Event.findById(eventId)
+    const foundEvent = await Event.findById(eventId);
 
-    var imageUrl = `${req.protocol}://${req.get('host')}/events/getImage?imageName=${req.body.photo}`
+    if (!foundEvent) {
+      return sendRespone(res, { data: [] }, "Không thể tìm thấy sự kiện!");
+    }
 
-    if (!foundEvent) return sendRespone(res, { data: [] }, "Không thể tìm thấy sự kiện!")
-    if (!req.file) imageUrl = ''
+    // Kiểm tra xem có file ảnh mới được gửi không
+    let imagePath = '';
+    if (req.file) {
+      imagePath = path.join(__dirname, '../Images', req.file.filename);
+      console.log(imagePath);
+    } else {
+      // Nếu không có file ảnh mới, sử dụng đường dẫn ảnh cũ từ request body
+      if (!req.body.photo) {
+        return sendRespone(res, { data: [] }, "Không tìm thấy đường dẫn ảnh!");
+      }
+      imagePath = path.join(__dirname, '../Images', req.body.photo);
+      console.log(imagePath);
+    }
 
-    const newEvent = req.body
+    // Cập nhật thông tin sự kiện với dữ liệu mới từ request body
+    const updateEvent = await Event.findByIdAndUpdate(eventId, req.body);
 
-    const updateEvent = await Event.findByIdAndUpdate(eventId, newEvent)
-
-    return sendRespone(res, { data: newEvent, imageUrl: imageUrl }, "Cập nhật thông tin sự kiện thành công!") 
+    return sendRespone(res, { data: updateEvent, imageUrl: imagePath }, "Cập nhật thông tin sự kiện thành công!");
   } catch (error) {
-    next(error)
+    next(error);
   }
 }
+
 
 // Export controllers
 module.exports = {
