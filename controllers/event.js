@@ -2,8 +2,7 @@
 const dayjs = require('dayjs')
 const Event = require('../models/Event')
 const Ticket = require('../models/Ticket')
-const fs = require('fs')
-const path = require('path')
+const { cloudinary } = require('../middlewares/cloudinary')
 
 // Respone function
 const sendRespone = (res, data, message, status = 201, pagination = {}) =>{
@@ -55,40 +54,18 @@ const checkAndUpdateEventStatus = async (events) => {
 
 // Controller for event
 const getImage = async (req, res, next) => {
-  const { imageName, eventId } = req.query
+  console.log("cc");
+}
 
+const upload = async (req, res, next) => {
   try {
-    let imagePath = ''
-
-    if (imageName) {
-      imagePath = path.join(__dirname, '../Images', imageName)
-    } else if (eventId) {
-      const foundImage = await Event.findById(eventId).select('photo')
-
-      if (!foundImage) {
-        return sendRespone(res, { data: [] }, "Không thể tìm thấy sự kiện!")
-      }
-
-      imagePath = path.join(__dirname, '../Images', foundImage.photo)
-    } else {
-      return sendRespone(res, { data: [] }, "Không tìm thấy ảnh!")
-    }
-
-    if (!fs.existsSync(imagePath)) {
-      return sendRespone(res, { data: [] }, "Không tìm thấy ảnh!")
-    }
-
-    fs.readFile(imagePath, (err, data) => {
-      if (err) {
-        console.error('Lỗi khi đọc file ảnh:', err)
-        return sendRespone(res, { data: [] }, "Đã xảy ra lỗi khi đọc hình ảnh!")
-      }
-      // res.set('Content-Type', 'image/jpeg')
-      // res.send(data)
-    })
-
-    console.log(imagePath);
-    return sendRespone(res, { data: imagePath }, "Đã tìm thấy ảnh!")
+    // const fileStr = req.files.image.data 
+    // console.log(fileStr);
+    // const uploadedRespone = await cloudinary.uploader.upload(fileStr, {
+    //   upload_preset: 'dev_setup'
+    // })
+    // console.log(uploadedRespone);
+    res.status(200).json({msg: "cc"})
   } catch (error) {
     next(error)
   }
@@ -342,6 +319,7 @@ module.exports = {
   createNewEvent,
   updateEvent,
   updateEventProfit,
+  upload,
   deactivateEvent,
   activateEvent
 }

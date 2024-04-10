@@ -7,7 +7,6 @@ const EventController = require('../controllers/event')  // User controller
 
 // Import helper
 const { validateBody, validateParam, schemas } = require('../helper/routerHelper')
-const multerHelper = require('../helper/multerHelper')   // Import helper for multer handler
 
 // Import passport
 const passport = require('passport')
@@ -17,12 +16,14 @@ const passportConfig = require('../middlewares/passport')
 router.route('/')
   .get(EventController.getEvents)
   .post(passport.authenticate('jwt', { session: false }),  
-    multerHelper.processUpload,
     validateBody(schemas.eventSchema), 
     EventController.createNewEvent)
 
 router.route('/getImage')
   .get(EventController.getImage)
+
+router.route('/upload')
+  .post(EventController.upload)
 
 router.route('/getRevenue')
   .get(passport.authenticate('jwt', { session: false }),
@@ -30,7 +31,6 @@ router.route('/getRevenue')
 
 router.route('/updateEvent')
   .patch(passport.authenticate('jwt', {session: false }), 
-    multerHelper.processUpload,
     validateBody(schemas.eventOptionalSchema), 
     EventController.updateEvent)
 

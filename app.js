@@ -10,20 +10,20 @@ const mongoClient = require('mongoose')         // Module for database
 const bodyParser = require('body-parser')       // Module for body handler
 const secureApp = require('helmet')             // Module for security
 const cors = require('cors')                    // Module for CORS
-const path = require('path')
-const fs = require('fs')
 
 // Import environment files
-const usersRoute = require('./routes/user')            // Import user's route configs
-const eventRoute = require('./routes/event')           // Import event's route configs
-const eventTypeRoute = require('./routes/eventType')   // Import eventType's route configs
-const ticketRoute = require('./routes/ticket')         // Import ticket's route configs
-const billRoute = require('./routes/bill')             // Import bill's route configs
-const feetbackRoute = require('./routes/feetback')     // Import feetback's route configs
-const passportSetup = require("./middlewares/passport")// Import passport setup file
+const usersRoute = require('./routes/user')                    // Import user's route configs
+const eventRoute = require('./routes/event')                   // Import event's route configs
+const eventTypeRoute = require('./routes/eventType')           // Import eventType's route configs
+const ticketRoute = require('./routes/ticket')                 // Import ticket's route configs
+const billRoute = require('./routes/bill')                     // Import bill's route configs
+const feetbackRoute = require('./routes/feetback')             // Import feetback's route configs
+const passportSetup = require("./middlewares/passport")        // Import passport setup file
+const cloudinary = require('./middlewares/cloudinary')         // Import cloudinary setup file
+const { MONGODB_CONNECTION_STRING } = require('./configs')     // Import environment value setup
 
 // Setup connect mongodb by mongoose
-const dbUrl = process.env.DB_URL
+const dbUrl = MONGODB_CONNECTION_STRING
 
 mongoClient.connect(dbUrl).then(() => {
   console.info('\x1b[32mSUCCESS:\x1b[0m Connected to \x1b[36mMongoDB\x1b[0m')
@@ -58,7 +58,6 @@ app.use(cors({
   methods: "GET,POST,PUT,DELETE,PATCH",
   credentials: true
 }))
-app.use(express.static("./images"))
 
 // Routes
 app.get('/', (req, res, next) => {  // Test route
