@@ -23,7 +23,7 @@ const feetbackRoute = require('./routes/feetback')     // Import feetback's rout
 const passportSetup = require("./middlewares/passport")// Import passport setup file
 
 // Setup connect mongodb by mongoose
-const dbUrl = `mongodb+srv://PcHuy:ctjerXC3Id87y0oH@cluster0.idi4juk.mongodb.net/TicketPlaza?retryWrites=true&w=majority&appName=Cluster0`;
+const dbUrl = process.env.DB_URL
 
 mongoClient.connect(dbUrl).then(() => {
   console.info('\x1b[32mSUCCESS:\x1b[0m Connected to \x1b[36mMongoDB\x1b[0m')
