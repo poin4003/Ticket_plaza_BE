@@ -19,4 +19,12 @@ router.route('/')
     validateBody(schemas.billSchema),
     BillController.createBill)
 
+router.route('/paidBill')
+  .patch(passport.authenticate('jwt', { session: false }),
+  BillController.paid)
+
+router.route('/checkinBill')
+  .patch(passport.authenticate('jwt', { session: false }),
+  BillController.checkin)
+  
 module.exports = router

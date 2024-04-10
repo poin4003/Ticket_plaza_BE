@@ -2,6 +2,12 @@
 const mongoose = require('mongoose')     // Module for database handling
 const Schema = mongoose.Schema 
 
+const TicketForBillSchema = new Schema({
+  ticketId: { type: Schema.Types.ObjectId },
+  amount: { type: Number },
+  price: { type: Number }
+})
+
 const BillSchema = new Schema({
   date: {
     type: Date 
@@ -14,9 +20,9 @@ const BillSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'Event'
   },
-  ticketsId: [{
-    type: String
-  }],
+  tickets: [
+    TicketForBillSchema
+  ],
   totalPrice: {
     type: Number
   },
