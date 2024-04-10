@@ -53,24 +53,6 @@ const checkAndUpdateEventStatus = async (events) => {
 }
 
 // Controller for event
-const getImage = async (req, res, next) => {
-  console.log("cc");
-}
-
-const upload = async (req, res, next) => {
-  try {
-    // const fileStr = req.files.image.data 
-    // console.log(fileStr);
-    // const uploadedRespone = await cloudinary.uploader.upload(fileStr, {
-    //   upload_preset: 'dev_setup'
-    // })
-    // console.log(uploadedRespone);
-    res.status(200).json({msg: "cc"})
-  } catch (error) {
-    next(error)
-  }
-}
-
 const createNewEvent = async (req, res, next) => {   // Create new Event
   console.log(req.body);
   
@@ -78,22 +60,13 @@ const createNewEvent = async (req, res, next) => {   // Create new Event
     return sendRespone(res, { data: [] }, "Không tìm thấy ảnh!")
   }
 
-  let image = ''
-  if (req.body.photo) {
-    imagePath = path.join(__dirname, '../Images', req.body.photo)
-    console.log(imagePath)
-  } else {
-    return sendRespone(res, { data: [] }, "Không tìm thấy đường dẫn ảnh!")
-  }
-
-  // const imageUrl = `${req.protocol}://${req.get('host')}/events/getImage?imageName=${req.body.photo}`
-  
+  const imageUrl = req.body.data
+ 
   const newEvent = new Event(req.body)
 
   await newEvent.save()
 
-  // return sendRespone(res, { data: newEvent, imageUrl:  imageUrl}, "Tạo sự kiện mới thành công!") 
-  return sendRespone(res, { data: newEvent, imageUrl:  imagePath}, "Tạo sự kiện mới thành công!") 
+  return sendRespone(res, { data: newEvent, imageUrl:  imageUrl}, "Tạo sự kiện mới thành công!") 
 }
 
 const getEvents = async (req, res, next) => {      // Get list event
@@ -314,12 +287,10 @@ const updateEvent = async (req, res, next) => {   // Update event by id (patch)
 // Export controllers
 module.exports = {
   getEvents, 
-  getImage,
   getRevenue,
   createNewEvent,
   updateEvent,
   updateEventProfit,
-  upload,
   deactivateEvent,
   activateEvent
 }

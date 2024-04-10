@@ -12,18 +12,16 @@ const { validateBody, validateParam, schemas } = require('../helper/routerHelper
 const passport = require('passport')
 const passportConfig = require('../middlewares/passport')
 
+// Import cloudinary
+const { uploadImageToCloud, uploadImageToCloudOptional } = require('../middlewares/cloudinary')
+
 // Routes
 router.route('/')
   .get(EventController.getEvents)
-  .post(passport.authenticate('jwt', { session: false }),  
+  .post(passport.authenticate('jwt', { session: false }), 
+    uploadImageToCloud, 
     validateBody(schemas.eventSchema), 
     EventController.createNewEvent)
-
-router.route('/getImage')
-  .get(EventController.getImage)
-
-router.route('/upload')
-  .post(EventController.upload)
 
 router.route('/getRevenue')
   .get(passport.authenticate('jwt', { session: false }),
@@ -31,6 +29,7 @@ router.route('/getRevenue')
 
 router.route('/updateEvent')
   .patch(passport.authenticate('jwt', {session: false }), 
+    uploadImageToCloudOptional,
     validateBody(schemas.eventOptionalSchema), 
     EventController.updateEvent)
 
