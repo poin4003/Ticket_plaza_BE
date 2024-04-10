@@ -37,7 +37,7 @@ const createBill = async (req, res, next) => {
 
 const getBills = async (req, res, next) => {
   let { page, limit, status, eventId, userId, 
-    ticketId, startDate, endDate} = req.query
+    ticketId, startDate, billId, endDate} = req.query
 
   limit = parseInt(limit) || 8
   page = parseInt(page) || 1
@@ -50,7 +50,8 @@ const getBills = async (req, res, next) => {
     if (status) billQuery.status = status
     if (eventId) billQuery.eventId = eventId
     if (userId) billQuery.userId = userId
-    if (ticketId) billQuery.ticketsId = { $in: ticketId }
+    if (billId) billQuery._id = billId
+    if (ticketId) billQuery.tickets = { $elemMatch: { ticketId: ticketId } }
     if (startDate && endDate) {
       startDate = dayjs(startDate).startOf('day').toDate()
       endDate = dayjs(endDate).endOf('day').toDate()
@@ -97,14 +98,17 @@ const paid = async (req, res, next) => {
 
     if (!foundEvent) return sendRespone(res, { data: [] }, "Không thể tìm thấy sự kiện!")
 
-    const test = foundBill.totalPrice * (foundBill.discount / 100)
-    console.log(test);
-    // foundEvent.profit += (foundBill.totalPrice * (foundBill.discount / 100))
-    // await foundEvent.save()
-    foundBill.status = 1
-    await foundBill.save()
+    if (foundBill.status === 0) {
+      var theAmountPaid = (foundBill.totalPrice - (foundBill.totalPrice * (foundBill.discount / 100)))
+      foundEvent.profit += theAmountPaid
+      await foundEvent.save()
+      foundBill.status = 1
+      await foundBill.save()
+    } else {
+      return sendRespone(res, { data: [] }, "Hóa đơn đã được thanh toán!")
+    }
 
-    return sendRespone(res, { data: foundBill }, "Thanh toán thành công!")
+    return sendRespone(res, { data: foundBill, theAmountPaid: theAmountPaid }, "Thanh toán thành công!")
   } catch (error) {
     next(error)
   }

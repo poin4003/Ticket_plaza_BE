@@ -53,6 +53,12 @@ const dateTimeValidator = Joi.string().custom((value, helpers) => {
 
 module.exports = dateTimeValidator;
 
+// Sub Schema for Bill
+const ticketForBillSchema = Joi.object().keys({
+  ticketId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
+  amount: Joi.number().required(),
+  price: Joi.number().required()
+})
 
 const schemas = {
   // Validate schemas
@@ -159,7 +165,7 @@ const schemas = {
     date: dateTimeValidator.required(),
     userId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
     eventId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
-    ticketsId: Joi.array().items(Joi.string().regex(/^[0-9a-fA-F]{24}$/)).required(),
+    tickets: Joi.array().items(ticketForBillSchema).required(),
     totalPrice: Joi.number().required(),
     discount: Joi.number().min(0).max(100).required(),
     checkoutMethod: Joi.string().required(),
@@ -170,7 +176,7 @@ const schemas = {
     date: dateTimeValidator,
     userId: Joi.string().regex(/^[0-9a-fA-F]{24}$/),
     eventId: Joi.string().regex(/^[0-9a-fA-F]{24}$/),
-    ticketsId: Joi.array().items(Joi.string().regex(/^[0-9a-fA-F]{24}$/)),
+    tickets: Joi.array().items(ticketForBillSchema),
     totalPrice: Joi.number(),
     discount: Joi.number().min(0).max(100),
     checkoutMethod: Joi.string(),
