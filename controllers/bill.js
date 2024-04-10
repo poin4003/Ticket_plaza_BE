@@ -46,10 +46,10 @@ const createBill = async (req, res, next) => {
         return sendRespone(res, { data: []}, "Số lượng vượt quá số vé trong kho!")
       }
     }
-
+    var theAmountPaid = (newBill.totalPrice - (newBill.totalPrice * (newBill.discount / 100)))
     await newBill.save()
 
-    return sendRespone(res, { data: newBill }, "Tạo hóa đơn mới thành công!")
+    return sendRespone(res, { data: newBill, theAmountPaid: theAmountPaid }, "Tạo hóa đơn mới thành công!")
   } catch (error) {
     next(error)
   }
