@@ -1,6 +1,7 @@
 // Import module for bill controller
 const Bill = require('../models/Bill')
 const Event = require('../models/Event')
+const Ticket = require('../models/Ticket')
 const dayjs = require('dayjs')
 
 // Respone function
@@ -29,10 +30,29 @@ const sortBillsByDateTime = (bills) => {
 // Controller for bill
 const createBill = async (req, res, next) => {
   const newBill = new Bill(req.body)
+  const tickets = req.body.tickets
 
-  await newBill.save()
+  try {
+    for (const ticket of tickets) {
+      const { ticketId, amount } = ticket
 
-  return sendRespone(res, { data: newBill }, "Tạo hóa đơn mới thành công!")
+      const foundTicket = await Ticket.findById(ticketId)
+      
+      if (foundTicket.totalAmount >= amount && foundTicket.totalAmount !== 0) {
+        
+        foundTicket.totalAmount -= amount
+        await foundTicket.save()
+      } else {
+        return sendRespone(res, { data: []}, "Số lượng vượt quá số vé trong kho!")
+      }
+    }
+
+    await newBill.save()
+
+    return sendRespone(res, { data: newBill }, "Tạo hóa đơn mới thành công!")
+  } catch (error) {
+    next(error)
+  }
 }
 
 const getBills = async (req, res, next) => {
