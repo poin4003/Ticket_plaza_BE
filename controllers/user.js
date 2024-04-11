@@ -2,6 +2,7 @@
 const nodemailer = require('nodemailer')
 const User = require('../models/User')
 const JWT = require('jsonwebtoken')
+const { ticketPlazaEmailAccount } = require('../configs')     // Import environment value setup
 
 // Config JsonWebToken
 const { JWT_SECRET } = require('../configs')
@@ -19,8 +20,8 @@ const encodedToken = (userID) => {
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: 'ticketplaza1000@gmail.com',
-    pass: 'mejj hvui xbkx vluo'
+    user: ticketPlazaEmailAccount.USERNAME,
+    pass: ticketPlazaEmailAccount.PASSWORD
   }
 })
 
@@ -42,8 +43,8 @@ const generateAndSendOTP = async (email) => {
     const OTP = Math.floor(1000 + Math.random() * 9000)
     const expirationTime = Date.now() + (5 * 60 * 1000)
     otpStorage[email] = { OTP, expirationTime }
-    console.log(otpStorage[email].OTP);
-    console.log(otpStorage[email].expirationTime);
+    // console.log(otpStorage[email].OTP);
+    // console.log(otpStorage[email].expirationTime);
 
     const mailOptions = {
       from: 'ticketplaza1000@gmail.com',

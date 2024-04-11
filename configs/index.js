@@ -11,5 +11,9 @@ module.exports = {
     CLOUD_NAME: process.env.CLOUDINARY_NAME,
     API_KEY: process.env.CLOUDINARY_API_KEY,
     API_SECRET: process.env.CLOUDINARY_API_SECRET
+  },
+  ticketPlazaEmailAccount: {
+    USERNAME: process.env.EMAIL_USERNAME,
+    PASSWORD: process.env.EMAIL_PASSWORD
   }
 }
