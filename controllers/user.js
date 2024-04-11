@@ -26,14 +26,38 @@ const transporter = nodemailer.createTransport({
 
 // Temporary storage for OTP
 const otpStorage = {}
+let otpAttempts = {}
 
-// Respone function
+// Supporting function
 const sendRespone = (res, data, message, status = 201, pagination = {}) =>{
   return res.status(status).json({
     data: [ data ],
     pagination,
     message
   })
+}
+
+const generateAndSendOTP = async (email) => {
+  try {
+    const OTP = Math.floor(1000 + Math.random() * 9000)
+    const expirationTime = Date.now() + (5 * 60 * 1000)
+    otpStorage[email] = { OTP, expirationTime }
+    console.log(otpStorage[email].OTP);
+    console.log(otpStorage[email].expirationTime);
+
+    const mailOptions = {
+      from: 'ticketplaza1000@gmail.com',
+      to: email,
+      subject: 'OTP for password reset',
+      text: `Your OTP is: ${OTP}\nPlease request in 5 minutes`
+    }
+
+    await transporter.sendMail(mailOptions)
+
+    return OTP
+  } catch (error) {
+    console.log(error)
+  }
 }
 
 // Controller for Authentication
@@ -126,18 +150,8 @@ const forgotPassword = async (req, res, next) => {
       return sendRespone(res, { data: [] }, "Không thể tìm thấy email!")
     }
 
-    const OTP = Math.floor(1000 + Math.random() * 9000)
-
-    otpStorage[email] = OTP
-
-    const mailOptions = {
-      from: 'ticketPlaza1000@gmail.com',
-      to: email,
-      subject: 'OTP for password reset',
-      text: `Your OTP is: ${OTP}`
-    };
-
-    await transporter.sendMail(mailOptions);
+    const OTP = await generateAndSendOTP(email)
+    
     return sendRespone(res, { data: user, status: true}, "Gửi email thành công!")
   } catch (error) {
     next(error)
@@ -149,28 +163,31 @@ const verifyOTP = async (req, res, next) => {
   const { email, otp } = req.query;
 
   try {
-
     if (!email || !otp) {
-      return sendRespone(res, { data: [] }, "Email hoặc OTP chưa được cung cấp!")
+      return sendRespone(res, { data: [] }, "Email hoặc otp chưa được nhập!")
     }
+    
+    const storedOTP = otpStorage[email]
 
-    if (otpStorage.hasOwnProperty(email)) {
-      const storedOTP = parseInt(otpStorage[email]);
+    const currentTime = Date.now()
+    
+    if (currentTime > storedOTP.expirationTime) return sendRespone(res, { data: [], status: 3 }, "Mã OTP đã hết hạn!")
 
-      const enteredOTP = parseInt(otp);
-
-      console.log(otp);
-      console.log(otpStorage[email]);
-
-      if (storedOTP === enteredOTP) {
-        delete otpStorage[email]
-        return sendRespone(res, { data: [], status: true }, "Xác thực OTP thành công!")
+    if (!storedOTP || parseInt(storedOTP.OTP) !== parseInt(otp)) {
+      otpAttempts[email] = (otpAttempts[email] || 0) + 1
+      if (otpAttempts[email] >= 3) {
+        const newOTP = generateAndSendOTP(email)
+        return sendRespone(res, { data: [], status: 2 }, "Nhập sai quá 3 lần. OTP mới đã được gửi lại tới email của bạn!")
       } else {
-        return sendRespone(res, { data: [], status: false }, "Mã OTP không đúng!");
+        console.log(otp);
+        console.log(storedOTP);
+        return sendRespone(res, { data: [], remainingAttempts: 3 - otpAttempts[email], status: 1 }, "Mã OTP không chính xác. Vui lòng nhập lại!")
       }
-    } else {
-      return sendRespone(res, { data: [], status: false }, "Không tìm thấy mã OTP!");
     }
+
+    delete otpAttempts[email]
+    delete otpStorage[email]
+    return sendRespone(res, { data: [], status: 0 }, "Xác thực OTP thành công!")
   } catch (error) {
     next(error)
   }
