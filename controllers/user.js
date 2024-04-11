@@ -158,7 +158,7 @@ const verifyOTP = async (req, res, next) => {
 
 // Controller for user
 const getUsers = async (req, res, next) => {
-  let { page, limit, userId, type, status, fullName, email, phone, identityID } = req.query
+  let { page, limit, userId, type, justAdmin, status, fullName, email, phone, identityID } = req.query
   page = parseInt(page) || 1
   limit = parseInt(limit) || 10
   
@@ -173,6 +173,7 @@ const getUsers = async (req, res, next) => {
     if (phone) query.phone = { $regex: phone }
     if (identityID) query.identityID = { $regex: identityID }
     if (type) query.type = { $in: [parseInt(type)] }
+    if (justAdmin) query.type = { $in: [1, 2] }
     if (status) query.status = status
 
     const users = await User.find(query).skip(skip).limit(limit).select("-password -authGoogleID")
