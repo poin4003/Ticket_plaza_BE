@@ -18,9 +18,9 @@ const sendRespone = (res, data, message, status = 201, pagination = {}) =>{
 
 const uploadImageToCloud = async (req, res, next) => {
   try { 
-    const fileStr = req.body.data
+    const fileStr = req.body.photo
     
-    console.log(fileStr);
+    // console.log(req.body);
 
     if (!fileStr) return sendRespone(res, { data: [] }, "Không tìm thấy ảnh!")
 
@@ -28,8 +28,10 @@ const uploadImageToCloud = async (req, res, next) => {
       upload_preset: 'dev_setup'
     })
     
-    req.body.photo = fileStr
+    req.body.photo = uploadedRespone.url
     
+    // console.log(req.body.photo);
+
     next()
   } catch (error) {
     next(error)
@@ -38,18 +40,20 @@ const uploadImageToCloud = async (req, res, next) => {
 
 const uploadImageToCloudOptional = async (req, res, next) => {
   try { 
-    const fileStr = req.body.data
+    const fileStr = req.body.photo 
     
-    console.log(fileStr);
+    // console.log(req.body);
 
-    if (!fileStr) next()
+    if (!fileStr) return next()
 
     const uploadedRespone = await cloudinary.uploader.upload(fileStr, {
       upload_preset: 'dev_setup'
     })
     
-    req.body.photo = fileStr
-    
+    req.body.photo = uploadedRespone.url
+  
+    // console.log(req.body.photo);
+
     next()
   } catch (error) {
     next(error)
