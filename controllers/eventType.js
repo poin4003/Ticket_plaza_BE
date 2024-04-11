@@ -11,7 +11,7 @@ const sendRespone = (res, data, message, status = 201, pagination = {}) =>{
 }
 
 // Controllers for EventType
-const getEvents = async (req, res, next) => {     // Get a eventType list
+const getEventTypes = async (req, res, next) => {     // Get a eventType list
   let { page, limit, status, eventTypeId, typeId, eventTypeName } = req.query
   limit = parseInt(limit) || 10
   page = parseInt(page) || 1
@@ -125,7 +125,7 @@ const deavtivateEventType = async (req, res, next) => {     // Deactivating even
 
 // Export controllers
 module.exports = {
-  getEvents,
+  getEventTypes,
   updateEventType,
   createEventType,
   activateEventType,

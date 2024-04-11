@@ -14,8 +14,7 @@ const passportConfig = require('../middlewares/passport')
 
 // Routes
 router.route('/')
-  .get(passport.authenticate('jwt', { session: false }), 
-    EventTypeController.getEvents)
+  .get(EventTypeController.getEventTypes)
   .post(passport.authenticate('jwt', { session: false }),  
     validateBody(schemas.eventTypeSchema), 
     EventTypeController.createEventType)
