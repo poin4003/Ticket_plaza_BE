@@ -60,7 +60,7 @@ const createNewEvent = async (req, res, next) => {   // Create new Event
     return sendRespone(res, { data: [] }, "Không tìm thấy ảnh!")
   }
 
-  const imageUrl = req.body.data
+  const imageUrl = req.body.photo
  
   const newEvent = new Event(req.body)
 
@@ -263,21 +263,11 @@ const updateEvent = async (req, res, next) => {   // Update event by id (patch)
       return sendRespone(res, { data: [] }, "Không thể tìm thấy sự kiện!");
     }
 
-    // Kiểm tra xem có file ảnh mới được gửi không
-    let imagePath = '';
-    if (req.file) {
-      imagePath = path.join(__dirname, '../Images', req.file.filename);
-      console.log(imagePath);
-    } else if (req.body.photo) {
-      imagePath = path.join(__dirname, '../Images', req.body.photo);
-      console.log(imagePath);
-    }
-
-
-    // Cập nhật thông tin sự kiện với dữ liệu mới từ request body
+    const imageUrl = req.body.photo
+    
     const updateEvent = await Event.findByIdAndUpdate(eventId, req.body);
 
-    return sendRespone(res, { data: updateEvent, imageUrl: imagePath }, "Cập nhật thông tin sự kiện thành công!");
+    return sendRespone(res, { data: updateEvent, imageUrl: imageUrl }, "Cập nhật thông tin sự kiện thành công!");
   } catch (error) {
     next(error);
   }
