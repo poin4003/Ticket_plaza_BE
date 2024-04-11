@@ -55,18 +55,12 @@ const checkAndUpdateEventStatus = async (events) => {
 // Controller for event
 const createNewEvent = async (req, res, next) => {   // Create new Event
   console.log(req.body);
-  
-  if (req.file === undefined) {
-    return sendRespone(res, { data: [] }, "Không tìm thấy ảnh!")
-  }
-
-  const imageUrl = req.body.photo
  
   const newEvent = new Event(req.body)
 
   await newEvent.save()
 
-  return sendRespone(res, { data: newEvent, imageUrl:  imageUrl}, "Tạo sự kiện mới thành công!") 
+  return sendRespone(res, { data: newEvent }, "Tạo sự kiện mới thành công!") 
 }
 
 const getEvents = async (req, res, next) => {      // Get list event
@@ -262,12 +256,10 @@ const updateEvent = async (req, res, next) => {   // Update event by id (patch)
     if (!foundEvent) {
       return sendRespone(res, { data: [] }, "Không thể tìm thấy sự kiện!");
     }
-
-    const imageUrl = req.body.photo
     
     const updateEvent = await Event.findByIdAndUpdate(eventId, req.body);
 
-    return sendRespone(res, { data: updateEvent, imageUrl: imageUrl }, "Cập nhật thông tin sự kiện thành công!");
+    return sendRespone(res, { data: updateEvent }, "Cập nhật thông tin sự kiện thành công!");
   } catch (error) {
     next(error);
   }
