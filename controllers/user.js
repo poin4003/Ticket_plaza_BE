@@ -2,7 +2,6 @@
 const nodemailer = require('nodemailer')
 const User = require('../models/User')
 const JWT = require('jsonwebtoken')
-const redis = require('redis')
 
 // Config JsonWebToken
 const { JWT_SECRET } = require('../configs')
@@ -18,15 +17,15 @@ const encodedToken = (userID) => {
 
 // Nodemailer transporter configs
 const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 465,
-  secure: true,
   service: 'gmail',
   auth: {
-    user: 'pchuy4003@gmail.com',
-    pass: 'nvidiageforce940mx'
+    user: 'ticketplaza1000@gmail.com',
+    pass: 'mejj hvui xbkx vluo'
   }
 })
+
+// Temporary storage for OTP
+const otpStorage = {}
 
 // Respone function
 const sendRespone = (res, data, message, status = 201, pagination = {}) =>{
@@ -36,9 +35,6 @@ const sendRespone = (res, data, message, status = 201, pagination = {}) =>{
     message
   })
 }
-
-// Redis databases configs
-const client = redis.createClient();
 
 // Controller for Authentication
 const signIn = async (req, res, next) => {           // LogIn (post)
@@ -109,52 +105,76 @@ const authGoogle = async (req, res, next) => {       // Login with google api
 }
 
 const forgotPassword = async (req, res, next) => {
-  const { email } = req.body;
+  const { email } = req.query
 
   try {
-    let query = {};
-    if (email) query = { email: { $regex: email, $options: 'i'} };
+    if (!email) {
+      return sendRespone(res, { data: [] }, "Email chưa được cung cấp!")
+    }
 
-    const user = await User.findOne(query);
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      return sendRespone(res, { data: [] }, "Email không hợp lệ!")
+    }
 
-    if (!user) return sendRespone(res, { data: [] }, "Không thể tìm thấy email!")
+    const query = {} 
+    query.email = { $regex: new RegExp(email, 'i') }
+    
+    const user = await User.findOne(query)
 
-    const OTP = Math.floor(1000 + Math.random() * 9000);
+    if (!user) {
+      return sendRespone(res, { data: [] }, "Không thể tìm thấy email!")
+    }
+
+    const OTP = Math.floor(1000 + Math.random() * 9000)
+
+    otpStorage[email] = OTP
 
     const mailOptions = {
-      from: 'pchuy4003@gmail.com',
+      from: 'ticketPlaza1000@gmail.com',
       to: email,
       subject: 'OTP for password reset',
       text: `Your OTP is: ${OTP}`
     };
 
     await transporter.sendMail(mailOptions);
-    return sendRespone(res, { data: user, status: true}, "Đăng nhập thành công!")
+    return sendRespone(res, { data: user, status: true}, "Gửi email thành công!")
   } catch (error) {
     next(error)
   }
 }
 
+// Controller for Verifying OTP
 const verifyOTP = async (req, res, next) => {
-  const { email, otp } = req.body;
+  const { email, otp } = req.query;
 
   try {
-    await client.connect()
-    const storedOTP = await client.get(email)
 
-    if (storedOTP === otp) {
-      client.del(email)
-      return sendRespone(res, { data: user, staus: true }, "Xác thực OPT thành công!")
+    if (!email || !otp) {
+      return sendRespone(res, { data: [] }, "Email hoặc OTP chưa được cung cấp!")
+    }
+
+    if (otpStorage.hasOwnProperty(email)) {
+      const storedOTP = parseInt(otpStorage[email]);
+
+      const enteredOTP = parseInt(otp);
+
+      console.log(otp);
+      console.log(otpStorage[email]);
+
+      if (storedOTP === enteredOTP) {
+        delete otpStorage[email]
+        return sendRespone(res, { data: [], status: true }, "Xác thực OTP thành công!")
+      } else {
+        return sendRespone(res, { data: [], status: false }, "Mã OTP không đúng!");
+      }
     } else {
-      const error = new Error("Lỗi trong quá trình xác thực OPT!")
-      error.status = 500
-      throw error
+      return sendRespone(res, { data: [], status: false }, "Không tìm thấy mã OTP!");
     }
   } catch (error) {
     next(error)
   }
 }
-
 
 // Controller for user
 const getUsers = async (req, res, next) => {
