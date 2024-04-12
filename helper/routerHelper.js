@@ -99,7 +99,7 @@ const schemas = {
     identityID: Joi.string().min(12).max(12)
   }), 
 
-  changPassword: Joi.object().keys({
+  changePassword: Joi.object().keys({
     email: Joi.string().min(2),
     password: Joi.string().min(6)
   }),
