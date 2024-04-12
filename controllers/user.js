@@ -2,6 +2,7 @@
 const nodemailer = require('nodemailer')
 const User = require('../models/User')
 const JWT = require('jsonwebtoken')
+const bcrypt = require('bcryptjs')                            // Module for hash password handling
 const { ticketPlazaEmailAccount } = require('../configs')     // Import environment value setup
 
 // Config JsonWebToken
@@ -264,6 +265,27 @@ const updateUserById = async (req, res, next) => {   // Update user by id (patch
   }
 }
 
+const changePassword = async (req, res, next) => {
+  const { email, password } = req.value.body
+
+  try {
+    const foundUser = await User.findOne({ email: email }).select("email password")
+
+    if (!foundUser) return sendRespone(res, { data: [] }, "Không thể tìm thấy tài khoản người dùng!")
+
+    const salt = await bcrypt.genSalt(10)
+    const passwordHased = await bcrypt.hash(password, salt)
+
+    foundUser.password = passwordHased
+    console.log(foundUser.password)
+    foundUser.save()
+
+    return sendRespone(res, { data: foundUser }, "Đổi mật khẩu thành công!")
+  } catch (error) {
+
+  }
+}
+
 const deactivateAccount = async (req, res, next) => {     // Deactivating account by id
   let { userId, email } = req.query
 
@@ -317,6 +339,7 @@ module.exports = {
   verifyOTP,
   getUsers,
   createNewUser,
+  changePassword,
   updateUserById,
   deactivateAccount,
   activateAccount
