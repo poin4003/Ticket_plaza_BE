@@ -92,13 +92,17 @@ const schemas = {
 
   userOptionalSchema: Joi.object().keys({       // Validate schema for admin (updating)
     fullName: Joi.string().min(2),
-    password: Joi.string().min(6),
     email: Joi.string().min(2),
     phone: Joi.string().max(10).min(10),
     birthDay: dateTimeValidator,
     type: Joi.number().min(1).max(2),
     identityID: Joi.string().min(12).max(12)
   }), 
+
+  changPassword: Joi.object().keys({
+    email: Joi.string().min(2),
+    password: Joi.string().min(6)
+  }),
 
   // Validate schema for event
   eventSchema: Joi.object().keys({              // Validate schema for event

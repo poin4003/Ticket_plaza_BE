@@ -26,6 +26,10 @@ router.route('/updateUser')
     validateBody(schemas.userOptionalSchema), 
     UserController.updateUserById)
 
+router.route('/changePassword')
+  .patch(validateBody(schemas.changPassword),
+    UserController.changePassword)
+
 router.route('/deactivateAccount')
   .patch(passport.authenticate('jwt', { session: false }),
     validateBody(schemas.userOptionalSchema, { session: false }),
