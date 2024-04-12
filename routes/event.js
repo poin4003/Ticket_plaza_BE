@@ -45,6 +45,11 @@ router.route('/activateEvent')
   .patch(passport.authenticate('jwt', { session: false }),
     EventController.activateEvent)
 
+router.route('/sendEmails')
+  .post(passport.authenticate('jwt', { session: false }),
+    validateBody(schemas.emailSchema),
+    EventController.sendEmails)
+
 
 // Export module
 module.exports = router
