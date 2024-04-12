@@ -56,7 +56,7 @@ router.route('/verifyOTP')
   .post(UserController.verifyOTP)
   
 router.route('/auth/google')
-  .get(passport.authenticate('google', { scope: ["profile"] }))
+  .get(passport.authenticate('google', { scope: ["profile", "email"] }))
 
 router.route('/auth/google/callback')
   .get(passport.authenticate('google', {failureRedirect: 'http://locachost:3000/login'}), UserController.authGoogle);
