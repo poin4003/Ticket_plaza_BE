@@ -47,8 +47,11 @@ passport.use(new GoogleStrategy({
   clientID: auth.google.CLIENT_ID,
   clientSecret: auth.google.CLIENT_SECRET, 
   callbackURL: "http://localhost:8000/users/auth/google/callback",
-  passReqToCallback: true
+  passReqToCallback: true,
+  scope: ['profile', 'email']
 }, (request, accessToken, refreshToken, profile, done) => {
+  console.log(profile);
+  console.log(profile.emails);
   done(null, profile)
 }))
 

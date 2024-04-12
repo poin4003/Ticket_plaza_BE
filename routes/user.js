@@ -27,7 +27,7 @@ router.route('/updateUser')
     UserController.updateUserById)
 
 router.route('/changePassword')
-  .patch(validateBody(schemas.changPassword),
+  .patch(validateBody(schemas.changePassword),
     UserController.changePassword)
 
 router.route('/deactivateAccount')

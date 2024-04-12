@@ -99,10 +99,24 @@ const signUp = async (req, res, next) => {           // SignUp (post)
 
 const authGoogle = async (req, res, next) => {       // Login with google api
   try {
-    let user = await User.findOne({ authGoogleID: req.user.id, authType: "google" })
+    let data = {
+      data: [{
+        data: []
+      }],
+      pagination: {},
+      message: "Tài khoản đã được tạo trên máy chủ, hãy đăng nhập bằng các ô thông tin thay vì google!"
+    }
 
-    if (!user) {
-      user = new User({
+    const foundUserLocal = await User.findOne({ email: req.user.emails[0].value, authType: "local" })
+
+    console.log(foundUserLocal);
+
+    if (foundUserLocal) return res.redirect(`http://localhost:3000/login?data=${encodeURIComponent(JSON.stringify(data))}`);
+    
+    let foundUserGoogle = await User.findOne({ authGoogleID: req.user.id, authType: "google" })
+
+    if (!foundUserGoogle) {
+      foundUserGoogle = new User({
         type: 0,
         authType: 'google',
         authGoogleID: req.user.id,
@@ -115,9 +129,9 @@ const authGoogle = async (req, res, next) => {       // Login with google api
     const token = encodedToken(user._id);
     res.setHeader('Authorization', token)
 
-    const data = {
+    data = {
       data: [{
-        data: user,
+        data: foundUserGoogle,
         token: token
       }],
       pagination: {},
@@ -269,9 +283,10 @@ const changePassword = async (req, res, next) => {
   const { email, password } = req.value.body
 
   try {
-    const foundUser = await User.findOne({ email: email }).select("email password")
+    const foundUser = await User.findOne({ email: email }).select("_id email password authType")
 
     if (!foundUser) return sendRespone(res, { data: [] }, "Không thể tìm thấy tài khoản người dùng!")
+    if (foundUser.authType === "google") return sendRespone(res, { data: [] }, "Không thể đổi mật khẩu tài khoản đã đăng nhập bằng google!")
 
     const salt = await bcrypt.genSalt(10)
     const passwordHased = await bcrypt.hash(password, salt)
@@ -280,7 +295,10 @@ const changePassword = async (req, res, next) => {
     console.log(foundUser.password)
     foundUser.save()
 
-    return sendRespone(res, { data: foundUser }, "Đổi mật khẩu thành công!")
+    const token = encodedToken(req.user._id)
+    res.setHeader('Authorization', token)
+
+    return sendRespone(res, { data: foundUser, token }, "Đổi mật khẩu thành công!")
   } catch (error) {
 
   }
