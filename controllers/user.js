@@ -121,10 +121,10 @@ const authGoogle = async (req, res, next) => {       // Login with google api
         email: req.user.emails[0].value,
         fullName: req.user.displayName
       })
-      await user.save()
+      await foundUserGoogle.save()
     }
 
-    const token = encodedToken(user._id);
+    const token = encodedToken(foundUserGoogle._id);
     res.setHeader('Authorization', token)
 
     data = {
@@ -290,12 +290,12 @@ const changePassword = async (req, res, next) => {
     const passwordHased = await bcrypt.hash(password, salt)
 
     foundUser.password = passwordHased
-    console.log(foundUser)
+    // console.log(foundUser)
     await foundUser.save()
 
     const token = encodedToken(foundUser._id)
     res.setHeader('Authorization', token)
-    console.log(token);
+    // console.log(token);
 
     return sendRespone(res, { data: foundUser, token }, "Đổi mật khẩu thành công!")
   } catch (error) {
