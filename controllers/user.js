@@ -109,8 +109,6 @@ const authGoogle = async (req, res, next) => {       // Login with google api
 
     const foundUserLocal = await User.findOne({ email: req.user.emails[0].value, authType: "local" })
 
-    console.log(foundUserLocal);
-
     if (foundUserLocal) return res.redirect(`http://localhost:3000/login?data=${encodeURIComponent(JSON.stringify(data))}`);
     
     let foundUserGoogle = await User.findOne({ authGoogleID: req.user.id, authType: "google" })
@@ -292,15 +290,16 @@ const changePassword = async (req, res, next) => {
     const passwordHased = await bcrypt.hash(password, salt)
 
     foundUser.password = passwordHased
-    console.log(foundUser.password)
-    foundUser.save()
+    console.log(foundUser)
+    await foundUser.save()
 
-    const token = encodedToken(req.user._id)
+    const token = encodedToken(foundUser._id)
     res.setHeader('Authorization', token)
+    console.log(token);
 
     return sendRespone(res, { data: foundUser, token }, "Đổi mật khẩu thành công!")
   } catch (error) {
-
+    next(error)
   }
 }
 

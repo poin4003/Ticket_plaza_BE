@@ -50,8 +50,7 @@ passport.use(new GoogleStrategy({
   passReqToCallback: true,
   scope: ['profile', 'email']
 }, (request, accessToken, refreshToken, profile, done) => {
-  console.log(profile);
-  console.log(profile.emails);
+  // console.log(profile);
   done(null, profile)
 }))
 
@@ -66,6 +65,8 @@ passport.use(
         const user = await User.findOne({ email })
         if (!user) 
         return done({ message: "Lỗi xác thực, tài khoản chưa được tạo!" }, false)
+
+        if (user.authType === "google") done({ message: "Lỗi xác thực, tài khoản đã được liên kết với google hãy đăng nhập bằng google!" })
 
         const isCorrectPassword = await user.isValidPassword(password)
 
