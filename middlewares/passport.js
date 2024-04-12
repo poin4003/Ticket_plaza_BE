@@ -50,7 +50,8 @@ passport.use(new GoogleStrategy({
   passReqToCallback: true,
   scope: ['profile', 'email']
 }, (request, accessToken, refreshToken, profile, done) => {
-  // console.log(profile);
+  console.log(profile);
+  // console.log(email);
   done(null, profile)
 }))
 
