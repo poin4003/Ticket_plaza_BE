@@ -281,27 +281,48 @@ const changePassword = async (req, res, next) => {
   const { email, password } = req.value.body
 
   try {
-    const foundUser = await User.findOne({ email: email }).select("_id email password authType")
+    const foundUser = await User.findOne({ email: email }).select("_id email password")
 
     if (!foundUser) return sendRespone(res, { data: [] }, "Không thể tìm thấy tài khoản người dùng!")
-    if (foundUser.authType === "google") return sendRespone(res, { data: [] }, "Không thể đổi mật khẩu tài khoản đã đăng nhập bằng google!")
+    // if (foundUser.authType === "google") return sendRespone(res, { data: [] }, "Không thể đổi mật khẩu tài khoản đã đăng nhập bằng google!")
 
     const salt = await bcrypt.genSalt(10)
-    const passwordHased = await bcrypt.hash(password, salt)
+    const passwordHashed = await bcrypt.hash(password, salt)
 
-    foundUser.password = passwordHased
-    // console.log(foundUser)
+    foundUser.password = passwordHashed
     await foundUser.save()
 
+    console.log(foundUser.password);
+    console.log(password);
     const token = encodedToken(foundUser._id)
     res.setHeader('Authorization', token)
-    // console.log(token);
 
     return sendRespone(res, { data: foundUser, token }, "Đổi mật khẩu thành công!")
   } catch (error) {
     next(error)
   }
 }
+
+// const changePassword = async (req, res, next) => {
+//   const { email, password } = req.value.body
+
+//   try {
+//     const foundUser = await User.findOne({ email: email }).select("email password")
+
+//     if (!foundUser) return sendRespone(res, { data: [] }, "Không thể tìm thấy tài khoản người dùng!")
+
+//     const salt = await bcrypt.genSalt(10)
+//     const passwordHased = await bcrypt.hash(password, salt)
+
+//     foundUser.password = passwordHased
+//     console.log(foundUser.password)
+//     foundUser.save()
+
+//     return sendRespone(res, { data: foundUser }, "Đổi mật khẩu thành công!")
+//   } catch (error) {
+//     next(error)
+//   }
+// }
 
 const deactivateAccount = async (req, res, next) => {     // Deactivating account by id
   let { userId, email } = req.query
