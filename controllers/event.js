@@ -1,8 +1,20 @@
 // Import module for event controller
 const dayjs = require('dayjs')
+const nodemailer = require('nodemailer')
 const Event = require('../models/Event')
 const Ticket = require('../models/Ticket')
-const { cloudinary } = require('../middlewares/cloudinary')
+const Bill = require('../models/Bill')
+const User = require('../models/User')
+const { ticketPlazaEmailAccount } = require('../configs')     // Import environment value setup
+
+// Nodemailer transporter configs
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: ticketPlazaEmailAccount.USERNAME,
+    pass: ticketPlazaEmailAccount.PASSWORD
+  }
+})
 
 // Respone function
 const sendRespone = (res, data, message, status = 201, pagination = {}) =>{
@@ -217,10 +229,24 @@ const deactivateEvent = async (req, res, next) => {
       return sendRespone(res, { data: [] }, "Không thể khóa sự kiện đã diễn ra!")
     }
 
+    const foundBill = await Bill.find({ eventId: eventId, status: 1 }).select("userId")
+    
+    // console.log(foundBill);
+    let emailList = []
+
+    for (const bill of foundBill) {
+      const foundUser = await User.findById(bill.userId).select("fullName email")
+      if (foundUser) {
+        emailList.push({ email: foundUser.email, fullName: foundUser.fullName })
+      }
+    }
+
+    console.log(emailList);
+
     foundEvent.status = 1
     await foundEvent.save()
 
-    return sendRespone(res, { data: foundEvent }, "Mở khóa sự kiện thành công!")
+    return sendRespone(res, { data: foundEvent, emailList: emailList }, "Khóa sự kiện thành công!")
   } catch (error) {
     next(error)
   }
@@ -242,6 +268,27 @@ const activateEvent = async (req, res, next) => {
     await foundEvent.save()
 
     return sendRespone(res, { data: foundEvent }, "Mở khóa sự kiện thành công!")
+  } catch (error) {
+    next(error)
+  }
+}
+
+const sendEmails = async (req, res, next) => {
+  try {
+    const emailList = req.body.emailList
+
+    for (const recipient of emailList) {
+      const mailOption = {
+        from: ticketPlazaEmailAccount.USERNAME,
+        to: recipient.email,
+        subject: req.body.subject,
+        text: req.body.text 
+      }
+
+      await transporter.sendMail(mailOption)
+
+      return sendRespone(res, [{ data: [] }], "Đã gửi thông báo cho các email!")
+    }
   } catch (error) {
     next(error)
   }
@@ -274,5 +321,6 @@ module.exports = {
   updateEvent,
   updateEventProfit,
   deactivateEvent,
-  activateEvent
+  activateEvent,
+  sendEmails
 }

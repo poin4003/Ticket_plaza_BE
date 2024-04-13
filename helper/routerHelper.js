@@ -201,6 +201,17 @@ const schemas = {
     rate: Joi.number().max(5),
     context: Joi.string(),
     photos: Joi.array().items(Joi.string())
+  }),
+
+  emailSchema: Joi.object().keys({
+    subject: Joi.string().required(),
+    text: Joi.string().required(),
+    emailList: Joi.array().items(
+      Joi.object().keys({
+        email: Joi.string().email().required(),
+        fullName: Joi.string().required()
+      })
+    ).required()
   })
 }
 
