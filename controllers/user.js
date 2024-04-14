@@ -6,8 +6,7 @@ const bcrypt = require('bcryptjs')                            // Module for hash
 
 
 // Config JsonWebToken
-const { JWT_SECRET } = require('../configs')
-const { ticketPlazaEmailAccount } = require('../configs')     
+const { JWT_SECRET, ticketPlazaEmailAccount, CLIENT_ENDPOINT } = require('../configs')
 
 const encodedToken = (userID) => {
   return JWT.sign({
@@ -110,7 +109,7 @@ const authGoogle = async (req, res, next) => {       // Login with google api
 
     const foundUserLocal = await User.findOne({ email: req.user.emails[0].value, authType: "local" })
 
-    if (foundUserLocal) return res.redirect(`http://localhost:3000/login?data=${encodeURIComponent(JSON.stringify(data))}`);
+    if (foundUserLocal) return res.redirect(`${CLIENT_ENDPOINT}/login?data=${encodeURIComponent(JSON.stringify(data))}`);
     
     let foundUserGoogle = await User.findOne({ authGoogleID: req.user.id, authType: "google" })
 
@@ -137,7 +136,7 @@ const authGoogle = async (req, res, next) => {       // Login with google api
       message: "Đăng nhập với Google thành công!"
     }
     
-    res.redirect(`http://localhost:3000/login?data=${encodeURIComponent(JSON.stringify(data))}`);
+    res.redirect(`${CLIENT_ENDPOINT}/login?data=${encodeURIComponent(JSON.stringify(data))}`);
   } catch (error) {
     next(error)
   }

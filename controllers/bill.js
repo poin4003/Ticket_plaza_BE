@@ -3,6 +3,7 @@ const Bill = require('../models/Bill')
 const Event = require('../models/Event')
 const Ticket = require('../models/Ticket')
 const dayjs = require('dayjs')
+const { CLIENT_ENDPOINT } = require('../configs')
 
 // Respone function
 const sendRespone = (res, data, message, status = 201, pagination = {}) =>{
@@ -103,9 +104,12 @@ const getBills = async (req, res, next) => {
 }
 
 const paid = async (req, res, next) => {
-  let { billId } = req.query
+  let { orderId, message, orderInfo } = req.query
 
   try {
+    const splitOrderId = orderId.split(".")
+    const billId = splitOrderId[1]
+
     let query = {}
 
     if (billId) query._id = billId
@@ -118,17 +122,73 @@ const paid = async (req, res, next) => {
 
     if (!foundEvent) return sendRespone(res, { data: [] }, "Không thể tìm thấy sự kiện!")
 
-    if (foundBill.status === 0) {
-      var theAmountPaid = (foundBill.totalPrice - (foundBill.totalPrice * (foundBill.discount / 100)))
-      foundEvent.profit += theAmountPaid
-      await foundEvent.save()
-      foundBill.status = 1
-      await foundBill.save()
-    } else {
-      return sendRespone(res, { data: [] }, "Hóa đơn đã được thanh toán!")
+    let ticketList = []
+
+    let data = {
+      data: [{
+        data: []
+      }],
+      pagination: {},
+      message: ""
     }
 
-    return sendRespone(res, { data: foundBill, theAmountPaid: theAmountPaid }, "Thanh toán thành công!")
+    for (const ticketBill of foundBill.tickets) {
+      const ticket = await Ticket.findById(ticketBill.ticketId)
+      if (ticket) {
+        ticketList.push(ticket)
+      }
+    }
+
+    if (message === 'Successful.') {
+      if (foundBill.status === 0) {
+        var theAmountPaid = (foundBill.totalPrice - (foundBill.totalPrice * (foundBill.discount / 100)))
+        foundEvent.profit += theAmountPaid
+        await foundEvent.save()
+        foundBill.status = 1
+        foundBill.checkoutMethod = orderInfo
+        await foundBill.save()
+      } else {
+        data = {
+          data: [{
+            data: []
+          }],
+          pagination: {},
+          message: "Hóa đơn đã được thanh toán!"
+        }
+
+        res.redirect(`${CLIENT_ENDPOINT}?data=${encodeURIComponent(JSON.stringify(data))}`);
+      }
+    } else {
+      for (const ticketToUpdate of ticketList) {
+        for (const ticketBill of foundBill.tickets) {
+          if (ticketToUpdate._id.equals(ticketBill.ticketId)) {
+            await ticketToUpdate.save()
+            break
+          }
+        }
+      }
+      await foundBill.deleteOne()
+
+      data = {
+        data: [{
+          data: []
+        }],
+        pagination: {},
+        message: "Thanh toán thất bại! Đơn thanh toán của bạn đã bị hủy!"
+      }
+
+      res.redirect(`${CLIENT_ENDPOINT}?data=${encodeURIComponent(JSON.stringify(data))}`);
+    }
+
+    data = {
+      data: [{
+        data: []
+      }],
+      pagination: {},
+      message: "Thanh toán thành công!"
+    }
+
+    res.redirect(`${CLIENT_ENDPOINT}?data=${encodeURIComponent(JSON.stringify(data))}`);
   } catch (error) {
     next(error)
   }
