@@ -2,6 +2,7 @@
 const Bill = require('../models/Bill')
 const Event = require('../models/Event')
 const Ticket = require('../models/Ticket')
+const User = require('../models/User')
 const dayjs = require('dayjs')
 const { CLIENT_ENDPOINT } = require('../configs')
 
@@ -25,7 +26,7 @@ const sortBillsByDateTime = (bills) => {
     
     return dateA - dateB
   })
-  return bills
+  return bills.reverse()
 }
 
 // Controller for bill
@@ -57,7 +58,7 @@ const createBill = async (req, res, next) => {
 }
 
 const getBills = async (req, res, next) => {
-  let { page, limit, status, eventId, userId, 
+  let { page, limit, status, eventId, email, 
     ticketId, startDate, billId, endDate} = req.query
 
   limit = parseInt(limit) || 8
@@ -66,25 +67,46 @@ const getBills = async (req, res, next) => {
   const skip = (page - 1) * limit
 
   try {
-    let billQuery = {}
+    let userQuery = {}
+    if (email) userQuery.email = email 
 
+    const users = await User.findOne(userQuery).select('_id fullName email phone')
+
+    if (!users) return sendRespone(res, { data: [] }, "Không tìm thấy người dùng, vui lòng nhập lại email!")
+
+    
+    let billQuery = {}
+    
     if (status) billQuery.status = status
     if (eventId) billQuery.eventId = eventId
-    if (userId) billQuery.userId = userId
     if (billId) billQuery._id = billId
     if (ticketId) billQuery.tickets = { $elemMatch: { ticketId: ticketId } }
     if (startDate && endDate) {
       startDate = dayjs(startDate).startOf('day').toDate()
       endDate = dayjs(endDate).endOf('day').toDate()
-
+      
       billQuery.date = { $gte: startDate, $lte: endDate }
     }
 
-    let bills = await Bill.find(billQuery).skip(skip).limit(limit)
-
+    let bills = await Bill.find(billQuery).skip(skip).limit(limit).populate({ 
+      path: 'userId',
+      select: '_id fullName email phone'
+    })
+       
     if (bills.length === 0) return sendRespone(res, { data: [] }, "Không thể tìm thấy hóa đơn!")
-
+ 
     bills = sortBillsByDateTime(bills)
+
+    for (let i = 0; i < bills.length; i++) {
+      const event = await Event.findById(bills[i].eventId).select('name')
+      if (!event) return sendRespone(res, { data: [] }, "Không thể tìm thấy sự kiện!")
+      bills[i] = {
+        ...bills[i].toObject(),
+        eventName: event.name,
+        user: bills[i].userId
+      }
+      delete bills[i].eventId
+    }
 
     const totalBills = await Bill.countDocuments(billQuery)
 
@@ -255,7 +277,7 @@ const getRevenueList = async (req, res, next) => {
 }
 
 const getTotalAmountTicketOfEvent = async (req, res, next) => {
-  
+
 }
 
 module.exports = {
