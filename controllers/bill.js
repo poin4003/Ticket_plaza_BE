@@ -118,10 +118,6 @@ const paid = async (req, res, next) => {
 
     if (!foundBill) return sendRespone(res, { data: [] }, "Không thể tìm hóa đơn!")
 
-    const foundEvent = await Event.findOne({ _id: foundBill.eventId })
-
-    if (!foundEvent) return sendRespone(res, { data: [] }, "Không thể tìm thấy sự kiện!")
-
     let ticketList = []
 
     let data = {
@@ -141,9 +137,6 @@ const paid = async (req, res, next) => {
 
     if (message === 'Successful.') {
       if (foundBill.status === 0) {
-        var theAmountPaid = (foundBill.totalPrice - (foundBill.totalPrice * (foundBill.discount / 100)))
-        foundEvent.profit += theAmountPaid
-        await foundEvent.save()
         foundBill.status = 1
         foundBill.checkoutMethod = orderInfo
         await foundBill.save()
@@ -219,8 +212,51 @@ const checkin = async (req, res, next) => {
   }
 }
 
+const getRevenueList = async (req, res, next) => {
+  let { userId, status, startDate, endDate } = req.query 
+
+  try {
+    let billQuery = {}
+    if (startDate && endDate) {
+      startDate = dayjs(startDate).startOf('day').toDate()
+      endDate = dayjs(endDate).endOf('day').toDate()
+
+      billQuery.date = { $gte: startDate, $lte: endDate } 
+    }
+
+    const billList = await Bill.find(billQuery).select('_id eventId totalPrice discount')
+    
+    const eventQuery = {}
+    if (status) eventQuery.status = status 
+    if (userId) eventQuery.host = userId
+    
+    const eventList = await Event.find(eventQuery).select('_id name host type status views')
+    
+    let eventNameList = []
+    let revenueList = []
+
+    for (const event of eventList) {
+      let totalRevenue = 0
+      for (const bill of billList) {
+        if (bill.eventId.toString() === event._id.toString()) {
+          const netPrice = bill.totalPrice - (bill.totalPrice * (bill.discount /100))
+          totalRevenue += netPrice
+        }
+      }
+
+      eventNameList.push(event.name)
+      revenueList.push(totalRevenue)
+    }
+
+    sendRespone(res, { eventNameList, revenueList }, "Tìm tên và doanh thu sự kiện tương ứng thành công!")
+  } catch (error) {
+    next(error)
+  }
+}
+
 module.exports = {
   getBills,
+  getRevenueList,
   createBill,
   paid,
   checkin

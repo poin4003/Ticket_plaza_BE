@@ -44,10 +44,6 @@ const EventSchema = new Schema({
     type: Number,
     default: 0
   },
-  profit: {
-    type: Number,
-    default: 0
-  }, 
   maxTicketPerBill: {
     type: Number,
     default: 0
