@@ -27,6 +27,10 @@ router.route('/getRevenue')
   .get(passport.authenticate('jwt', { session: false }),
     EventController.getRevenue)
 
+router.route('/getViewList')
+  .get(passport.authenticate('jwt', { session: false }),
+    EventController.getViewList)
+
 router.route('/updateEvent')
   .patch(passport.authenticate('jwt', {session: false }), 
     uploadImageToCloudOptional,
