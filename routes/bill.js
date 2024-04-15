@@ -30,5 +30,8 @@ router.route('/paidBill')
 router.route('/checkinBill')
   .patch(passport.authenticate('jwt', { session: false }),
     BillController.checkin)
+
+router.route('/getRevenueList')
+  .get(BillController.getRevenueList)
   
 module.exports = router
