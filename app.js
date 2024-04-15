@@ -20,7 +20,7 @@ const billRoute = require('./routes/bill')                     // Import bill's 
 const feetbackRoute = require('./routes/feetback')             // Import feetback's route configs
 const passportSetup = require("./middlewares/passport")        // Import passport setup file
 const cloudinary = require('./middlewares/cloudinary')         // Import cloudinary setup file
-const { MONGODB_CONNECTION_STRING } = require('./configs')     // Import environment value setup
+const { MONGODB_CONNECTION_STRING, CLIENT_ENDPOINT } = require('./configs')     // Import environment value setup
 
 // Setup connect mongodb by mongoose
 const dbUrl = MONGODB_CONNECTION_STRING
@@ -56,7 +56,7 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(cors({
-  origin: "http://localhost:3000",
+  origin: CLIENT_ENDPOINT,
   methods: "GET,POST,PUT,DELETE,PATCH",
   credentials: true
 }))

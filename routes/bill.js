@@ -2,6 +2,7 @@
 const express = require('express')               // Module for Api handler
 const router = require('express-promise-router')() // Module for router
 
+
 // Import controllers
 const BillController = require('../controllers/bill')
 
@@ -11,6 +12,7 @@ const { validateBody, schemas } = require('../helper/routerHelper')
 // Import passport
 const passport = require('passport')
 const passportConfig = require('../middlewares/passport')
+const momo = require('../middlewares/momo')
 
 // Routes
 router.route('/')
@@ -19,12 +21,14 @@ router.route('/')
     validateBody(schemas.billSchema),
     BillController.createBill)
 
+router.route('/momo')
+  .post(momo.paidByMomo, momo.redirectFunction)
+
 router.route('/paidBill')
-  .patch(passport.authenticate('jwt', { session: false }),
-  BillController.paid)
+  .get(BillController.paid)   
 
 router.route('/checkinBill')
   .patch(passport.authenticate('jwt', { session: false }),
-  BillController.checkin)
+    BillController.checkin)
   
 module.exports = router
