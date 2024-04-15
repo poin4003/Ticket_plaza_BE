@@ -200,6 +200,13 @@ const getViewList = async (req, res, next) => {
     if (status) eventQuery.status = status 
     if (userId) eventQuery.host = userId 
 
+    if (startDate && endDate) {
+      startDate = dayjs(startDate).startOf('day').startOf('day').toDate()
+      endDate = dayjs(endDate).endOf('day').toDate()
+
+      eventQuery.date = { $gte: startDate, $lte: endDate }
+    }
+
     const eventList = await Event.find(eventQuery).select('_id name host type status views')
 
     let eventNameList = []

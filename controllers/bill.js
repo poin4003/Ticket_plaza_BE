@@ -254,6 +254,10 @@ const getRevenueList = async (req, res, next) => {
   }
 }
 
+const getTotalAmountTicketOfEvent = async (req, res, next) => {
+  
+}
+
 module.exports = {
   getBills,
   getRevenueList,
