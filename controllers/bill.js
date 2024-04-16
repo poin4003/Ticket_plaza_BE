@@ -72,11 +72,9 @@ const getBills = async (req, res, next) => {
 
     const users = await User.findOne(userQuery).select('_id fullName email phone')
 
-    if (!users) return sendRespone(res, { data: [] }, "Không tìm thấy người dùng, vui lòng nhập lại email!")
-
     let billQuery = {}
     
-    if (users) billQuery.userId = users._id
+    if (email) billQuery.userId = users._id
     if (status) billQuery.status = status
     if (eventId) billQuery.eventId = eventId
     if (billId) billQuery._id = billId
