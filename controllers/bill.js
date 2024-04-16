@@ -106,6 +106,7 @@ const getBills = async (req, res, next) => {
         user: bills[i].userId
       }
       delete bills[i].eventId
+      delete bills[i].userId
     }
 
     const totalBills = await Bill.countDocuments(billQuery)
@@ -261,7 +262,7 @@ const getRevenueList = async (req, res, next) => {
       let totalRevenue = 0
       for (const bill of billList) {
         if (bill.eventId.toString() === event._id.toString()) {
-          const netPrice = bill.totalPrice - (bill.totalPrice * (bill.discount /100))
+          const netPrice = bill.totalPrice - (bill.totalPrice * (bill.discount / 100))
           totalRevenue += netPrice
         }
       }
@@ -276,13 +277,14 @@ const getRevenueList = async (req, res, next) => {
   }
 }
 
-const getTotalAmountTicketOfEvent = async (req, res, next) => {
+const getTotalAmountTicketOfEventList = async (req, res, next) => {
 
 }
 
 module.exports = {
   getBills,
   getRevenueList,
+  getTotalAmountTicketOfEventList,
   createBill,
   paid,
   checkin
