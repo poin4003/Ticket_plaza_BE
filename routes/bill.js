@@ -13,11 +13,13 @@ const { validateBody, schemas } = require('../helper/routerHelper')
 const passport = require('passport')
 const passportConfig = require('../middlewares/passport')
 const momo = require('../middlewares/momo')
+const Bill = require('../models/Bill')
 
 // Routes
 router.route('/')
-  .get(BillController.getBills)
-  .post(passport.authenticate('jwt', { session: false }),
+  .get(passport.authenticate('jwt', {session: false }),
+    BillController.getBills)
+  .post(passport.authenticate('jwt', {session: false }),
     validateBody(schemas.billSchema),
     BillController.createBill)
 
@@ -32,9 +34,15 @@ router.route('/checkinBill')
     BillController.checkin)
 
 router.route('/getRevenueList')
-  .get(BillController.getRevenueList)
+  .get(passport.authenticate('jwt', { session: false }),
+    BillController.getRevenueList)
 
 router.route('/getTotalAmountTicketList')
-  .get(BillController.getTotalAmountTicketOfEventList)
+  .get(passport.authenticate('jwt', { session: false }),
+    BillController.getTotalAmountTicketOfEventList)
   
+router.route('/getBillDetail')
+  .get(passport.authenticate('jwt', { session: false }),
+    BillController.getBillDetail)
+
 module.exports = router

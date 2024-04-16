@@ -46,6 +46,20 @@ const calculateTotalAmountForEvent = async (eventId) => {
   return totalAmount
 }
 
+const calculateTotalMoney = (tickets) => {
+  let totalPrice = 0
+  for (const ticket of tickets) {
+    totalPrice += ticket.price
+  }
+  return totalPrice
+}
+
+const calculateMoneyToPaid = (totalPrice, discount) => {
+  const discountAmount = (totalPrice * discount) / 100
+  const moneyToPaid = totalPrice - discountAmount
+  return moneyToPaid
+}
+
 // Controller for bill
 const createBill = async (req, res, next) => {
   const newBill = new Bill(req.body)
@@ -136,6 +150,46 @@ const getBills = async (req, res, next) => {
 
     return sendRespone(res, { data: bills }, `${totalBills} hoá đơn đã được tìm thấy!`,
     201, pagination)
+  } catch (error) {
+    next(error)
+  }
+}
+
+const getBillDetail = async (req, res, next) => {
+  let { billId } = req.query
+
+  try { 
+    let bill = await Bill.findById(billId).populate({ 
+      path: 'userId',
+      select: '_id fullName email phone'
+    })
+ 
+    if (!bill) return sendRespone(res, { data: [] }, "Không thể tìm thấy hóa đơn!")
+ 
+    const event = await Event.findById(bill.eventId).select('name')
+    if (!event) return sendRespone(res, { data: [] }, "Không thể tìm thấy sự kiện trong hóa đơn!")
+
+    const totalMoney = calculateTotalMoney(bill.tickets)
+    const theMoneyHasToPaid = calculateMoneyToPaid(totalMoney, bill.discount)
+
+    console.log(totalMoney);
+    
+
+    const billDetail = {
+      _id: bill._id,
+      date: bill.date,
+      user: bill.userId,
+      event: event.name,
+      tickets: bill.tickets,
+      totalMoney: totalMoney,
+      discount: bill.discount,
+      theMoneyHasToPaid: theMoneyHasToPaid,
+      checkoutMethod: bill.checkoutMethod,
+      status: bill.status,
+      __v: bill.__v
+    }
+
+    return sendRespone(res, { data: billDetail }, `Hoá đơn đã được tìm thấy!`)
   } catch (error) {
     next(error)
   }
@@ -323,6 +377,7 @@ module.exports = {
   getBills,
   getRevenueList,
   getTotalAmountTicketOfEventList,
+  getBillDetail,
   createBill,
   paid,
   checkin
