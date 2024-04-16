@@ -29,6 +29,23 @@ const sortBillsByDateTime = (bills) => {
   return bills.reverse()
 }
 
+const calculateTotalAmountForEvent = async (eventId) => {
+  let totalAmount = 0
+  const tickets = await Ticket.find({ eventId })
+  
+  for (const ticket of tickets) {
+    const bill = await Bill.findOne({ 'tickets.ticketId': ticket._id })
+    if (bill) {
+      const ticketInBill = bill.tickets.find(item => item.ticketId.equals(ticket._id))
+      if (ticketInBill) {
+        totalAmount += ticketInBill.amount
+      }
+    }
+  }
+
+  return totalAmount
+}
+
 // Controller for bill
 const createBill = async (req, res, next) => {
   const newBill = new Bill(req.body)
@@ -276,42 +293,22 @@ const getRevenueList = async (req, res, next) => {
 }
 
 const getTotalAmountTicketOfEventList = async (req, res, next) => {
-  let { userId, status, startDate, endDate } = req.query 
+  let { userId, status, startDate, endDate } = req.query
 
   try {
-    let billQuery = {}
-    if (startDate && endDate) {
-      startDate = dayjs(startDate).startOf('day').toDate()
-      endDate = dayjs(endDate).endOf('day').toDate()
+    let eventQuery = {}
+    if (status) eventQuery.status = status
+    if (userId) eventQuery.host = userId
 
-      billQuery.date = { $gte: startDate, $lte: endDate } 
-    }
+    const eventList = await Event.find(eventQuery).select(
+      '_id name host type status views'
+    )
 
-    const billList = await Bill.find(billQuery).select('_id eventId tickets totalPrice discount')
-
-    const eventQuery = {}
-    if (status) eventQuery.status = status 
-    if (userId) eventQuery.host = userId 
-
-    const eventList = await Event.find(eventQuery).select('_id name host type status views')
-    
     let eventNameList = []
     let amountOfTicketList = []
-  
+
     for (const event of eventList) {
-      const totalAmount = 0
-      const ticketList = await Ticket.find({ eventId: event._id })
-      for (const ticket of ticketList) {
-        const amountOfTicket = 0
-        for (const bill of billList) {
-          console.log(bill);
-          for (const ticketInBill of bill.tickets)
-            if (ticketInBill.ticketId.toString() === ticket._id.toString()) {
-              amountOfTicket += ticketInBill.amount
-              totalAmount += amountOfTicket
-            }
-          }
-        }
+      const totalAmount = await calculateTotalAmountForEvent(event._id)
       eventNameList.push(event.name)
       amountOfTicketList.push(totalAmount)
     }
