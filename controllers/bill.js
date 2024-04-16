@@ -86,9 +86,9 @@ const getBills = async (req, res, next) => {
       billQuery.date = { $gte: startDate, $lte: endDate }
     }
 
-    let bills = await Bill.find(billQuery).skip(skip).limit(limit).populate({ 
+    let bills = await Bill.find(billQuery).skip(skip).limit(limit).select('-tickets').populate({ 
       path: 'userId',
-      select: '_id fullName email phone'
+      select: '_id email'
     })
        
     if (bills.length === 0) return sendRespone(res, { data: [] }, "Không thể tìm thấy hóa đơn!")
@@ -276,7 +276,50 @@ const getRevenueList = async (req, res, next) => {
 }
 
 const getTotalAmountTicketOfEventList = async (req, res, next) => {
+  let { userId, status, startDate, endDate } = req.query 
 
+  try {
+    let billQuery = {}
+    if (startDate && endDate) {
+      startDate = dayjs(startDate).startOf('day').toDate()
+      endDate = dayjs(endDate).endOf('day').toDate()
+
+      billQuery.date = { $gte: startDate, $lte: endDate } 
+    }
+
+    const billList = await Bill.find(billQuery).select('_id eventId tickets totalPrice discount')
+
+    const eventQuery = {}
+    if (status) eventQuery.status = status 
+    if (userId) eventQuery.host = userId 
+
+    const eventList = await Event.find(eventQuery).select('_id name host type status views')
+    
+    let eventNameList = []
+    let amountOfTicketList = []
+  
+    for (const event of eventList) {
+      const totalAmount = 0
+      const ticketList = await Ticket.find({ eventId: event._id })
+      for (const ticket of ticketList) {
+        const amountOfTicket = 0
+        for (const bill of billList) {
+          console.log(bill);
+          for (const ticketInBill of bill.tickets)
+            if (ticketInBill.ticketId.toString() === ticket._id.toString()) {
+              amountOfTicket += ticketInBill.amount
+              totalAmount += amountOfTicket
+            }
+          }
+        }
+      eventNameList.push(event.name)
+      amountOfTicketList.push(totalAmount)
+    }
+
+    sendRespone(res, { eventNameList, amountOfTicketList }, "Tìm tên và số lượng vé tương ứng của sự kiện thành công!")
+  } catch (error) {
+    next(error)
+  }
 }
 
 module.exports = {

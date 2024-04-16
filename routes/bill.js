@@ -33,5 +33,8 @@ router.route('/checkinBill')
 
 router.route('/getRevenueList')
   .get(BillController.getRevenueList)
+
+router.route('/getTotalAmountTicketList')
+  .get(BillController.getTotalAmountTicketOfEventList)
   
 module.exports = router
