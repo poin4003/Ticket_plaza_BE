@@ -192,6 +192,37 @@ const getRevenue = async (req, res, next) => {      // Get revenue
   }
 }
 
+const getViewList = async (req, res, next) => {
+  let { userId, status, startDate, endDate } = req.query 
+
+  try {
+    const eventQuery = {}
+    if (status) eventQuery.status = status 
+    if (userId) eventQuery.host = userId 
+
+    if (startDate && endDate) {
+      startDate = dayjs(startDate).startOf('day').startOf('day').toDate()
+      endDate = dayjs(endDate).endOf('day').toDate()
+
+      eventQuery.date = { $gte: startDate, $lte: endDate }
+    }
+
+    const eventList = await Event.find(eventQuery).select('_id name host type status views')
+
+    let eventNameList = []
+    let viewList = []
+
+    for (const event of eventList) {
+      eventNameList.push(event.name)
+      viewList.push(event.views)
+    }
+
+    sendRespone(res, { data: eventNameList, viewList }, "Tìm tên và view sự kiện tương ứng thành công!")
+  } catch (error) {
+    next(error)
+  }
+}
+
 const updateEventProfit = async (req, res, next) => {
   let { eventId, profitToAdd } = req.query
 
@@ -317,6 +348,7 @@ const updateEvent = async (req, res, next) => {   // Update event by id (patch)
 module.exports = {
   getEvents, 
   getRevenue,
+  getViewList,
   createNewEvent,
   updateEvent,
   updateEventProfit,
