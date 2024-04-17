@@ -169,6 +169,18 @@ const getBillDetail = async (req, res, next) => {
     const event = await Event.findById(bill.eventId).select('name')
     if (!event) return sendRespone(res, { data: [] }, "Không thể tìm thấy sự kiện trong hóa đơn!")
 
+    let tickets = [];
+    for (const ticket of bill.tickets) {
+      const ticketDetail = await Ticket.findById(ticket.ticketId);
+      tickets.push({
+        name: ticketDetail.name,
+        amount: ticket.amount,
+        price: ticket.price,
+        totalMoneyOfTicket: ticket.amount * ticket.price,
+        _id: ticket._id
+      })
+    }
+
     const totalMoney = calculateTotalMoney(bill.tickets)
     const theMoneyHasToPaid = calculateMoneyToPaid(totalMoney, bill.discount)
 
@@ -180,7 +192,7 @@ const getBillDetail = async (req, res, next) => {
       date: bill.date,
       user: bill.userId,
       event: event.name,
-      tickets: bill.tickets,
+      tickets: tickets,
       totalMoney: totalMoney,
       discount: bill.discount,
       theMoneyHasToPaid: theMoneyHasToPaid,
