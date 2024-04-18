@@ -99,7 +99,9 @@ const sendBill = async (email, subject, text, billId) => {
 
     await transporter.sendMail(mailOption)
   } catch (error) {
-    console.log(error);
+    const customError = new Error('Lỗi gửi email, không thể gửi email!')
+    customError.originalError = error
+    throw customError
   }
 }
 
@@ -257,7 +259,7 @@ const paid = async (req, res, next) => {
     const splitOrderId = orderId.split(".");
     const billId = splitOrderId[1];
     
-    const splitExtraDate = extraData.split("|");
+    const splitExtraDate = extraData.split("<splitText>");
     const subject = splitExtraDate[0];
     const text = splitExtraDate[1];
 

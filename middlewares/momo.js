@@ -22,7 +22,7 @@ const createRequestBody = (billIdParam, orderInfoParam, amountParam, subjectPara
   var ipnUrl = momo.IPN_URL
   var amount = amountParam
   var requestType = "captureWallet"
-  var extraData = `${subjectParam}|${textParam}`
+  var extraData = `${subjectParam}<splitText>${textParam}`
 
   var rawSignature = "accessKey=" + accessKey + 
     "&amount=" + amount + "&extraData=" + extraData +
