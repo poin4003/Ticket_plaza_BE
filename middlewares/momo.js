@@ -11,9 +11,7 @@ const sendRespone = (res, data, message, status = 201, pagination = {}) =>{
   })
 }
 
-const createRequestBody = (billIdParam, orderInfoParam, amountParam) => {
-  console.log(orderInfoParam);
-  console.log(amountParam);
+const createRequestBody = (billIdParam, orderInfoParam, amountParam, subjectParam, textParam) => {
   var partnerCode = momo.PARTNER_CODE
   var accessKey = momo.ACCESS_KEY
   var secretKey = momo.SECRET_KEY
@@ -24,7 +22,7 @@ const createRequestBody = (billIdParam, orderInfoParam, amountParam) => {
   var ipnUrl = momo.IPN_URL
   var amount = amountParam
   var requestType = "captureWallet"
-  var extraData = ""
+  var extraData = `${subjectParam}|${textParam}`
 
   var rawSignature = "accessKey=" + accessKey + 
     "&amount=" + amount + "&extraData=" + extraData +
@@ -92,13 +90,13 @@ const sendRequest = (requestBody, callback) => {
 }
 
 const paidByMomo = (req, res, next) => {
-  console.log(req.body);
-  // const { billId, orderInfo, amount } = req.query
+  // console.log(req.body)
   const billId = req.body.billId
   const orderInfo = req.body.orderInfo 
   const amount = req.body.amount
-  if (!billId && !orderInfo && !amount) return sendRespone(res, { data: [] }, "Thiếu thông tin!")
-  const requestBody = createRequestBody(billId, orderInfo, amount)
+  const subject = req.body.subject 
+  const text = req.body.text
+  const requestBody = createRequestBody(billId, orderInfo, amount, subject, text)
   sendRequest(requestBody, (error, responseData) => {
     if (error) {
       console.error(`Problem with request: ${error.message}`)

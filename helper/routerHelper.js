@@ -212,6 +212,14 @@ const schemas = {
         fullName: Joi.string().required()
       })
     ).required()
+  }),
+
+  momoSchema: Joi.object().keys({
+    billId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
+    orderInfo: Joi.string().required(),
+    amount: Joi.number().required(),
+    subject: Joi.string().required(),
+    text: Joi.string().required()
   })
 }
 
