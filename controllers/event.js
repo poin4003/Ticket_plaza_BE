@@ -87,8 +87,12 @@ const getEvents = async (req, res, next) => {      // Get list event
   try {
     let eventQuery = {}
 
-    if (host) eventQuery.host = host
-    if (member) eventQuery.members = { $in: member }
+    if (host || member) {
+      eventQuery.$or = [
+        { host },
+        { members: { $in: [member] } }
+      ]
+    } 
     if (eventId) eventQuery._id = eventId 
     if (name) eventQuery.name = { $regex: new RegExp(name, 'i') }
     if (type) eventQuery.type = { $regex: new RegExp(type, 'i') }
