@@ -357,7 +357,7 @@ const checkin = async (req, res, next) => {
 }
 
 const getRevenueList = async (req, res, next) => {
-  let { userId, status, startDate, endDate } = req.query 
+  let { host, member, status, startDate, endDate } = req.query 
 
   try {
     let billQuery = {}
@@ -371,8 +371,13 @@ const getRevenueList = async (req, res, next) => {
     const billList = await Bill.find(billQuery).select('_id eventId totalPrice discount')
     
     const eventQuery = {}
+    if (host || member) {
+      eventQuery.$or = [
+        { host },
+        { members: { $in: [member] } }
+      ]
+    } 
     if (status) eventQuery.status = status 
-    if (userId) eventQuery.host = userId
     
     const eventList = await Event.find(eventQuery).select('_id name host type status views')
     
@@ -399,12 +404,17 @@ const getRevenueList = async (req, res, next) => {
 }
 
 const getTotalAmountTicketOfEventList = async (req, res, next) => {
-  let { userId, status, startDate, endDate } = req.query
+  let { host, member, status, startDate, endDate } = req.query
 
   try {
     let eventQuery = {}
+    if (host || member) {
+      eventQuery.$or = [
+        { host },
+        { members: { $in: [member] } }
+      ]
+    } 
     if (status) eventQuery.status = status
-    if (userId) eventQuery.host = userId
 
     const eventList = await Event.find(eventQuery).select(
       '_id name host type status views'
