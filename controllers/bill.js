@@ -4,9 +4,20 @@ const Event = require('../models/Event')
 const Ticket = require('../models/Ticket')
 const User = require('../models/User')
 const dayjs = require('dayjs')
-const { CLIENT_ENDPOINT } = require('../configs')
+const qr = require('qrcode')
+const nodemailer = require('nodemailer')
+const { ticketPlazaEmailAccount, CLIENT_ENDPOINT } = require('../configs')
 
-// Respone function
+// Nodemailer transporter configs
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: ticketPlazaEmailAccount.USERNAME,
+    pass: ticketPlazaEmailAccount.PASSWORD
+  }
+})
+
+// Supporting function for bill controllers
 const sendRespone = (res, data, message, status = 201, pagination = {}) =>{
   return res.status(status).json({
     data: [ data ],
@@ -15,7 +26,6 @@ const sendRespone = (res, data, message, status = 201, pagination = {}) =>{
   })
 }
 
-// Sort bills by date time
 const sortBillsByDateTime = (bills) => {
   bills.sort((a, b) => {
     const timeA = a.time ? a.time.split(':') : ['00', '00']
@@ -58,6 +68,41 @@ const calculateMoneyToPaid = (totalPrice, discount) => {
   const discountAmount = (totalPrice * discount) / 100
   const moneyToPaid = totalPrice - discountAmount
   return moneyToPaid
+}
+
+const generateQR = async (billId) => {
+  try {
+    const qrDataURL = await qr.toDataURL(billId)
+    const qrBuffer = Buffer.from(qrDataURL.split(',')[1], 'base64')
+    return qrBuffer
+  } catch (error) {
+    throw new Error('Không thể tạo mã QR')
+  }
+}
+
+const sendBill = async (email, subject, text, billId) => {
+  try {
+    const data = billId.toString()
+    const qrCheckin = await generateQR(data)
+    
+    const mailOption = {
+      from: ticketPlazaEmailAccount.USERNAME,
+      to: email,
+      subject: subject,
+      text: text,
+      attachments: [{
+        filename: "qrCheckin.png",
+        content: qrCheckin,
+        encoding: 'base64'
+      }]
+    }
+
+    await transporter.sendMail(mailOption)
+  } catch (error) {
+    const customError = new Error('Lỗi gửi email, không thể gửi email!')
+    customError.originalError = error
+    throw customError
+  }
 }
 
 // Controller for bill
@@ -208,42 +253,39 @@ const getBillDetail = async (req, res, next) => {
 }
 
 const paid = async (req, res, next) => {
-  let { orderId, message, orderInfo } = req.query
+  let { orderId, message, orderInfo, extraData } = req.query;
 
   try {
-    const splitOrderId = orderId.split(".")
-    const billId = splitOrderId[1]
+    const splitOrderId = orderId.split(".");
+    const billId = splitOrderId[1];
+    
+    const splitExtraDate = extraData.split("<splitText>");
+    const subject = splitExtraDate[0];
+    const text = splitExtraDate[1];
 
-    let query = {}
+    let query = {};
 
-    if (billId) query._id = billId
+    if (billId) query._id = billId;
 
-    const foundBill = await Bill.findOne(query)
+    const foundBill = await Bill.findOne(query).populate({ path: 'userId', select: '_id email' });
 
-    if (!foundBill) return sendRespone(res, { data: [] }, "Không thể tìm hóa đơn!")
+    if (!foundBill) return sendRespone(res, { data: [] }, "Không thể tìm hóa đơn!");
 
-    let ticketList = []
+    let ticketList = [];
 
     let data = {
       data: [{
         data: []
       }],
       pagination: {},
-      message: ""
-    }
-
-    for (const ticketBill of foundBill.tickets) {
-      const ticket = await Ticket.findById(ticketBill.ticketId)
-      if (ticket) {
-        ticketList.push(ticket)
-      }
-    }
+      message: "Thanh toán thành công, hóa đơn kèm mã QR checkin sẽ được gửi tới email của bạn!"
+    };
 
     if (message === 'Successful.') {
       if (foundBill.status === 0) {
-        foundBill.status = 1
-        foundBill.checkoutMethod = orderInfo
-        await foundBill.save()
+        foundBill.status = 1;
+        foundBill.checkoutMethod = orderInfo;
+        await foundBill.save();
       } else {
         data = {
           data: [{
@@ -251,20 +293,24 @@ const paid = async (req, res, next) => {
           }],
           pagination: {},
           message: "Hóa đơn đã được thanh toán!"
-        }
-
-        res.redirect(`${CLIENT_ENDPOINT}?data=${encodeURIComponent(JSON.stringify(data))}`);
+        };
       }
     } else {
+      for (const ticketBill of foundBill.tickets) {
+        const ticket = await Ticket.findById(ticketBill.ticketId);
+        if (ticket) {
+          ticketList.push(ticket);
+        }
+      }
       for (const ticketToUpdate of ticketList) {
         for (const ticketBill of foundBill.tickets) {
           if (ticketToUpdate._id.equals(ticketBill.ticketId)) {
-            await ticketToUpdate.save()
-            break
+            await ticketToUpdate.save();
+            break;
           }
         }
       }
-      await foundBill.deleteOne()
+      await foundBill.deleteOne();
 
       data = {
         data: [{
@@ -272,22 +318,16 @@ const paid = async (req, res, next) => {
         }],
         pagination: {},
         message: "Thanh toán thất bại! Đơn thanh toán của bạn đã bị hủy!"
-      }
-
-      res.redirect(`${CLIENT_ENDPOINT}?data=${encodeURIComponent(JSON.stringify(data))}`);
-    }
-
-    data = {
-      data: [{
-        data: []
-      }],
-      pagination: {},
-      message: "Thanh toán thành công!"
+      };
     }
 
     res.redirect(`${CLIENT_ENDPOINT}?data=${encodeURIComponent(JSON.stringify(data))}`);
+
+    if (message === 'Successful.') {
+      sendBill(foundBill.userId.email, subject, text, foundBill._id);
+    }
   } catch (error) {
-    next(error)
+    next(error);
   }
 }
 
@@ -384,6 +424,7 @@ const getTotalAmountTicketOfEventList = async (req, res, next) => {
     next(error)
   }
 }
+
 
 module.exports = {
   getBills,

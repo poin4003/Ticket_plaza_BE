@@ -44,5 +44,5 @@ router.route('/getTotalAmountTicketList')
 router.route('/getBillDetail')
   .get(passport.authenticate('jwt', { session: false }),
     BillController.getBillDetail)
-
+  
 module.exports = router
