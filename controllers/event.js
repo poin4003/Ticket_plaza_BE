@@ -197,12 +197,17 @@ const getRevenue = async (req, res, next) => {      // Get revenue
 }
 
 const getViewList = async (req, res, next) => {
-  let { userId, status, startDate, endDate } = req.query 
+  let { host, member, status, startDate, endDate } = req.query 
 
   try {
     const eventQuery = {}
+    if (host || member) {
+      eventQuery.$or = [
+        { host },
+        { members: { $in: [member] } }
+      ]
+    } 
     if (status) eventQuery.status = status 
-    if (userId) eventQuery.host = userId 
 
     if (startDate && endDate) {
       startDate = dayjs(startDate).startOf('day').startOf('day').toDate()
