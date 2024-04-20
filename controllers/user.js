@@ -44,8 +44,6 @@ const generateAndSendOTP = async (email) => {
     const OTP = Math.floor(1000 + Math.random() * 9000)
     const expirationTime = Date.now() + (5 * 60 * 1000)
     otpStorage[email] = { OTP, expirationTime }
-    // console.log(otpStorage[email].OTP);
-    // console.log(otpStorage[email].expirationTime);
 
     const mailOptions = {
       from: 'ticketplaza1000@gmail.com',
@@ -263,13 +261,11 @@ const updateUserById = async (req, res, next) => {   // Update user by id (patch
   const { userId } = req.query
 
   try {
-    const foundUser = await User.findById(userId).select("-password -authGoogleID")
-
-    if (!foundUser) return sendRespone(res, { data: [] }, "Không thể tìm thấy tài khoản người dùng!")
-
     const newUser = req.value.body
 
-    const updateCustomer = await User.findByIdAndUpdate(userId, newUser)
+    const updateUser = await User.findByIdAndUpdate(userId, newUser)
+
+    if (!updateUser) return sendRespone(res, { data: [] }, "Không thể tìm thấy tài khoản người dùng!")
 
     return sendRespone(res, { data: newUser }, "Cập nhật thông tin người dùng thành công!")
   } catch (error) {

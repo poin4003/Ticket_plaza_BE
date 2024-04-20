@@ -81,13 +81,11 @@ const updateTicket = async (req, res, next) => {
   const { ticketId } = req.query 
 
   try {
-    const foundTicket = await Ticket.findById(ticketId)
-
-    if (!foundTicket) return sendRespone(res, { data: [] }, "Không thể tìm thấy vé!")
-
     const newTicket = req.value.body 
     
     const updateTicket = await Ticket.findByIdAndUpdate(ticketId, newTicket)
+
+    if (!updateTicket) return sendRespone(res, { data: [] }, "Không thể tìm thấy vé!")
 
     return sendRespone(res, { data: newTicket }, "Cập nhật thông tin vé thành công!")
   } catch (error) {

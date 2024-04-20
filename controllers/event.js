@@ -66,8 +66,6 @@ const checkAndUpdateEventStatus = async (events) => {
 
 // Controller for event
 const createNewEvent = async (req, res, next) => {   // Create new Event
-  console.log(req.body);
- 
   const newEvent = new Event(req.body)
 
   await newEvent.save()
@@ -338,15 +336,15 @@ const updateEvent = async (req, res, next) => {   // Update event by id (patch)
   const { eventId } = req.query;
 
   try {
-    const foundEvent = await Event.findById(eventId);
+    const newEvent = req.value.body
 
-    if (!foundEvent) {
+    const updateEvent = await Event.findByIdAndUpdate(eventId, newEvent)
+
+    if (!updateEvent) {
       return sendRespone(res, { data: [] }, "Không thể tìm thấy sự kiện!");
     }
     
-    const updateEvent = await Event.findByIdAndUpdate(eventId, req.body);
-
-    return sendRespone(res, { data: updateEvent }, "Cập nhật thông tin sự kiện thành công!");
+    return sendRespone(res, { data: newEvent }, "Cập nhật thông tin sự kiện thành công!");
   } catch (error) {
     next(error);
   }

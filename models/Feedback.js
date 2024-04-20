@@ -7,18 +7,16 @@ const FeetbackSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'Bill'
   },
-  eventId: {
-    type: String
-  },
   rate: {
     type: Number
   },
   context: {
     type: String
   },
-  photos: [{
-    type: String
-  }]
+  status: {
+    type: Number,
+    default: 0
+  }
 })
 
 // Export Feedback model
