@@ -20,7 +20,44 @@ const createFeetback = async (req, res, next) => {
 }
 
 const getFeetbacks = async (req, res, next) => {
+  let { page, limit, status, feetbackId, eventId, rate} = req.query 
 
+  limit = parseInt(limit) || 8
+  page = parseInt(page) || 1
+
+  const skip = (page - 1) * limit
+
+  try {
+    let feetbackquery = {}
+    if (feetbackId) feetbackquery._id = feetbackId 
+    if (eventId) feetbackquery.eventId = eventId
+    if (rate) feetbackquery.rate = rate 
+    if (status) feetbackquery.status = status 
+
+    let feetbacks = await Feetback.find(feetbackquery).skip(skip).limit(limit).populate({ path: 'eventId', select: '_id name' })
+
+    if (feetbacks.length === 0) return sendRespone(res, { data: [] }, "Không thể tìm thấy thông tin phản hồi!")
+
+    feetbacks = feetbacks.map(feetback => ({
+      ...feetback.toObject(),
+      event: feetback.eventId
+    }))
+
+    const totalFeetbacks = await Feetback.countDocuments(feetbackquery)
+
+    const totalPages = Math.ceil(totalFeetbacks / limit)
+
+    const pagination = {
+      totalItems: totalFeetbacks,
+      currentPage: page,
+      totalPages: totalPages
+    }
+
+    return sendRespone(res, { data: feetbacks }, `${totalFeetbacks} phản hồi thông tin đã được tìm thấy!`,
+    201, pagination)
+  } catch (error) {
+    next(error)
+  }
 }
 
 const updateFeetbacks = async (req, res, next) => {
@@ -39,6 +76,22 @@ const updateFeetbacks = async (req, res, next) => {
   } catch (error) {
     next(error)
   }
+}
+
+const activateFeetback = async (req, res, next) => {
+  let { feetbackId } = req.query 
+
+  try {
+    let query = {}
+
+    
+  } catch (error) {
+    next(error)
+  }
+}
+
+const deactivateFeetback = async (req, res, next) => {
+
 }
 
 module.exports = {
