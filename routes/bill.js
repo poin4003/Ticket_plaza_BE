@@ -22,6 +22,8 @@ router.route('/')
   .post(passport.authenticate('jwt', {session: false }),
     validateBody(schemas.billSchema),
     BillController.createBill)
+  .delete(passport.authenticate('jwt', { session: false }),
+    BillController.deleteBill)
 
 router.route('/momo')
   .post(momo.paidByMomo, momo.redirectFunction)

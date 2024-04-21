@@ -10,7 +10,6 @@ const { validateBody, schemas } = require('../helper/routerHelper')
 
 // Import passport
 const passport = require('passport')
-const passportConfig = require('../middlewares/passport')
 
 // Routes
 router.route('/')
@@ -18,5 +17,10 @@ router.route('/')
   .post(passport.authenticate('jwt', { session: false }),
     validateBody(schemas.feetbackSchema),
     FeetbackController.createFeetback)
+  .patch(passport.authenticate('jwt', { session: false }),
+    validateBody(schemas.feetbackOptionalSchema),
+    FeetbackController.updateFeetbacks)
+
+
 
 module.exports = router

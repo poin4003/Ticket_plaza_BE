@@ -65,8 +65,7 @@ app.use(cors({
 app.get('/', (req, res, next) => {  // Test route
   return res.status(200).json({
     message: 'Server is OK!'
-  })
-  //res.send('<a href="users/auth/google">Authenticate with Google</a>')
+  }) 
 })
 
 app.use('/users', usersRoute)           // Navigate to usersRoute
@@ -74,7 +73,7 @@ app.use('/events', eventRoute)          // Navigate to eventRoute
 app.use('/eventTypes', eventTypeRoute)  // Navigate to eventTypeRoute
 app.use('/tickets', ticketRoute)        // Navigate to ticketRoute
 app.use('/bills', billRoute)            // Navigate to billRoute
-app.use('/feetback', feetbackRoute)     // Navigate to feetbackRoute
+app.use('/feetbacks', feetbackRoute)     // Navigate to feetbackRoute
 
 // Error handler function
 app.use((err, req, res, next) => {

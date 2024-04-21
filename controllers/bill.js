@@ -269,7 +269,7 @@ const paid = async (req, res, next) => {
 
     const foundBill = await Bill.findOne(query).populate({ path: 'userId', select: '_id email' });
 
-    if (!foundBill) return sendRespone(res, { data: [] }, "Không thể tìm hóa đơn!");
+    if (!foundBill) return sendRespone(res, { data: [] }, "Không thể tìm thấy hóa đơn!");
 
     let ticketList = [];
 
@@ -437,6 +437,25 @@ const getTotalAmountTicketOfEventList = async (req, res, next) => {
   }
 }
 
+const deleteBill = async (req, res, next) => {
+  const { billId } = req.query
+
+  try {
+    const foundBill = await Bill.findById(billId)
+
+    if (!foundBill) return sendRespone(res, { data: [] }, "Không thể tìm thấy hóa đơn")
+
+    if (foundBill.status === 0) {
+      await foundBill.deleteOne()
+    } else {
+      return sendRespone(res, { data: [] }, "Không thể xóa hóa đơn đã thanh toán!")
+    }
+
+    sendRespone(res, { data: [] }, "Xóa hóa đơn thành công!")
+  } catch (error) {
+    next(error)
+  }
+}
 
 module.exports = {
   getBills,
@@ -445,5 +464,6 @@ module.exports = {
   getBillDetail,
   createBill,
   paid,
-  checkin
+  checkin,
+  deleteBill
 }
