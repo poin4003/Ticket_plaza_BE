@@ -41,8 +41,8 @@ const sortEventsByDateTime = (events) => {
 
 // Sort events by views
 const sortEventsByViews = (events) => {
-    events.sort((eventA, eventB) => eventB.views - eventA.views)
-    return events
+  events.sort((eventA, eventB) => eventB.views - eventA.views)
+  return events
 }
 
 // Check and update status to 2
@@ -234,11 +234,7 @@ const updateEventProfit = async (req, res, next) => {
   let { eventId, profitToAdd } = req.query
 
   try {
-    let query = {}
-
-    if (eventId) query._id = eventId
-
-    const foundEvent = await Event.findOne(query)
+    const foundEvent = await Event.findById(eventId)
 
     if (!foundEvent) return sendRespone(res, { data: [] }, "Không thể tìm thấy sự kiện!")
 
@@ -255,11 +251,7 @@ const deactivateEvent = async (req, res, next) => {
   let { eventId } = req.query
 
   try {
-    let query = {}
-
-    if (eventId) query._id = eventId
-
-    const foundEvent = await Event.findOne(query)
+    const foundEvent = await Event.findById(eventId)
 
     if (!foundEvent) return sendRespone(res, { data: [] }, "Không thể tìm thấy sự kiện!")
 
@@ -269,7 +261,6 @@ const deactivateEvent = async (req, res, next) => {
 
     const foundBill = await Bill.find({ eventId: eventId, status: 1 }).select("userId")
     
-    // console.log(foundBill);
     let emailList = []
 
     for (const bill of foundBill) {
@@ -294,11 +285,7 @@ const activateEvent = async (req, res, next) => {
   let { eventId } = req.query
 
   try {
-    let query = {}
-
-    if (eventId) query._id = eventId
-
-    const foundEvent = await Event.findOne(query)
+    const foundEvent = await Event.findById(eventId)
 
     if (!foundEvent) return sendRespone(res, { data: [] }, "Không thể tìm thấy sự kiện!")
 
@@ -334,17 +321,19 @@ const sendEmails = async (req, res, next) => {
 
 const updateEvent = async (req, res, next) => {   // Update event by id (patch)
   const { eventId } = req.query;
+  const newEvent = req.value.body
 
   try {
-    const newEvent = req.value.body
+    const foundEvent = await Event.findById(eventId)
 
-    const updateEvent = await Event.findByIdAndUpdate(eventId, newEvent)
-
-    if (!updateEvent) {
+    if (!foundEvent) {
       return sendRespone(res, { data: [] }, "Không thể tìm thấy sự kiện!");
     }
     
-    return sendRespone(res, { data: newEvent }, "Cập nhật thông tin sự kiện thành công!");
+    foundEvent.set(newEvent)
+    foundEvent.save()
+
+    return sendRespone(res, { data: foundEvent }, "Cập nhật thông tin sự kiện thành công!");
   } catch (error) {
     next(error);
   }

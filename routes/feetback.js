@@ -21,6 +21,10 @@ router.route('/')
     validateBody(schemas.feetbackOptionalSchema),
     FeetbackController.updateFeetbacks)
 
+router.route('/activateFeetback')
+  .patch(FeetbackController.activateFeetback)
 
+router.route('/deactivateFeetback')
+  .patch(FeetbackController.deactivateFeetback)
 
 module.exports = router

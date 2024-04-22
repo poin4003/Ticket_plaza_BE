@@ -259,15 +259,17 @@ const createNewUser = async (req, res, next) => {   // Create user
 
 const updateUserById = async (req, res, next) => {   // Update user by id (patch)
   const { userId } = req.query
+  const newUser = req.value.body
 
   try {
-    const newUser = req.value.body
+    const foundUser = await User.findById(userId)
 
-    const updateUser = await User.findByIdAndUpdate(userId, newUser)
+    if (!foundUser) return sendRespone(res, { data: [] }, "Không thể tìm thấy tài khoản người dùng!")
 
-    if (!updateUser) return sendRespone(res, { data: [] }, "Không thể tìm thấy tài khoản người dùng!")
+    foundUser.set(newUser)
+    await foundUser.save()
 
-    return sendRespone(res, { data: newUser }, "Cập nhật thông tin người dùng thành công!")
+    return sendRespone(res, { data: foundUser }, "Cập nhật thông tin người dùng thành công!")
   } catch (error) {
     next(error)
   }
@@ -280,7 +282,6 @@ const changePassword = async (req, res, next) => {
     const foundUser = await User.findOne({ email: email }).select("_id email password")
 
     if (!foundUser) return sendRespone(res, { data: [] }, "Không thể tìm thấy tài khoản người dùng!")
-    // if (foundUser.authType === "google") return sendRespone(res, { data: [] }, "Không thể đổi mật khẩu tài khoản đã đăng nhập bằng google!")
 
     const salt = await bcrypt.genSalt(10)
     const passwordHashed = await bcrypt.hash(password, salt)
@@ -288,8 +289,6 @@ const changePassword = async (req, res, next) => {
     foundUser.password = passwordHashed
     await foundUser.save()
 
-    console.log(foundUser.password);
-    console.log(password);
     const token = encodedToken(foundUser._id)
     res.setHeader('Authorization', token)
 

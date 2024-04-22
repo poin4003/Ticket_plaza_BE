@@ -62,40 +62,62 @@ const getFeetbacks = async (req, res, next) => {
 
 const updateFeetbacks = async (req, res, next) => {
   const { feetbackId } = req.query 
+  const newFeetback = req.value.body
 
   try {
-    const newFeetback = req.value.body
+    const foundFeetback = await Feetback.findById(feetbackId)
 
-    const updateFeetbacks = await Feetback.findByIdAndUpdate(feetbackId, newFeetback)
-
-    if (!updateFeetbacks) {
+    if (!foundFeetback) {
       return sendRespone(res, { data: [] }, "Không thể tìm thấy thông tin phản hồi!")
     }
 
-    return sendRespone(res, { data: newFeetback }, "Cập nhật thông tin thông tin phản hồi thành công!")
+    foundFeetback.set(newFeetback)
+    await foundFeetback.save()
+
+    return sendRespone(res, { data: foundFeetback }, "Cập nhật thông tin thông tin phản hồi thành công!")
   } catch (error) {
     next(error)
   }
 }
 
 const activateFeetback = async (req, res, next) => {
-  let { feetbackId } = req.query 
+  const { feetbackId } = req.query 
 
   try {
-    let query = {}
+    const foundFeetback = await Feetback.findById(feetbackId)
 
+    if (!foundFeetback) return sendRespone(res, { data: [] }, "Không thể tìm thấy thông tin phản hồi!")
+
+    foundFeetback.status = 0
+    await foundFeetback.save()
     
+    return sendRespone(res, { data: foundFeetback }, "Mở khóa thông tin phản hồi thành công!")
   } catch (error) {
     next(error)
   }
 }
 
 const deactivateFeetback = async (req, res, next) => {
+  const { feetbackId } = req.query 
 
+  try {
+    const foundFeetback = await Feetback.findById(feetbackId)
+
+    if (!foundFeetback) return sendRespone(res, { data: [] }, "Không thể tìm thấy thông tin phản hồi!")
+
+    foundFeetback.status = 1
+    await foundFeetback.save()
+    
+    return sendRespone(res, { data: foundFeetback }, "Khóa thông tin phản hồi thành công!")
+  } catch (error) {
+    next(error)
+  }
 }
 
 module.exports = {
   getFeetbacks,
   createFeetback,
-  updateFeetbacks
+  updateFeetbacks,
+  activateFeetback,
+  deactivateFeetback
 }
