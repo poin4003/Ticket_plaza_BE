@@ -310,7 +310,7 @@ const getTotalAmountTicketOfEventList = async (req, res, next) => {
       startDate = dayjs(startDate).startOf('day').toDate()
       endDate = dayjs(endDate).endOf('day').toDate()
 
-      billQuery.date = { $gte: startDate, $lte: endDate } 
+      eventQuery.date = { $gte: startDate, $lte: endDate } 
     }
     if (status) eventQuery.status = status
 
