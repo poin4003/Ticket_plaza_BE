@@ -4,106 +4,11 @@ const Event = require('../models/Event')
 const Ticket = require('../models/Ticket')
 const User = require('../models/User')
 const dayjs = require('dayjs')
-const qr = require('qrcode')
-const nodemailer = require('nodemailer')
-const { ticketPlazaEmailAccount, CLIENT_ENDPOINT } = require('../configs')
-
-// Nodemailer transporter configs
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: ticketPlazaEmailAccount.USERNAME,
-    pass: ticketPlazaEmailAccount.PASSWORD
-  }
-})
-
-// Supporting function for bill controllers
-const sendRespone = (res, data, message, status = 201, pagination = {}) =>{
-  return res.status(status).json({
-    data: [ data ],
-    pagination,
-    message
-  })
-}
-
-const sortBillsByDateTime = (bills) => {
-  bills.sort((a, b) => {
-    const timeA = a.time ? a.time.split(':') : ['00', '00']
-    const timeB = b.time ? b.time.split(':') : ['00', '00']
-
-    const dateA = dayjs(a.date).startOf('day').add(parseInt(timeA[0]), 'hour').add(parseInt(timeA[1]), 'minute')
-    const dateB = dayjs(b.date).startOf('day').add(parseInt(timeB[0]), 'hour').add(parseInt(timeB[1]), 'minute') 
-    
-    return dateA - dateB
-  })
-  return bills.reverse()
-}
-
-const calculateTotalAmountForEvent = async (eventId) => {
-  let totalAmount = 0
-  const tickets = await Ticket.find({ eventId })
-  
-  for (const ticket of tickets) {
-    const bill = await Bill.findOne({ 'tickets.ticketId': ticket._id })
-    if (bill) {
-      const ticketInBill = bill.tickets.find(item => item.ticketId.equals(ticket._id))
-      if (ticketInBill) {
-        totalAmount += ticketInBill.amount
-      }
-    }
-  }
-
-  return totalAmount
-}
-
-const calculateTotalMoney = (tickets) => {
-  let totalPrice = 0
-  for (const ticket of tickets) {
-    totalPrice += ticket.price
-  }
-  return totalPrice
-}
-
-const calculateMoneyToPaid = (totalPrice, discount) => {
-  const discountAmount = (totalPrice * discount) / 100
-  const moneyToPaid = totalPrice - discountAmount
-  return moneyToPaid
-}
-
-const generateQR = async (billId) => {
-  try {
-    const qrDataURL = await qr.toDataURL(billId)
-    const qrBuffer = Buffer.from(qrDataURL.split(',')[1], 'base64')
-    return qrBuffer
-  } catch (error) {
-    throw new Error('Không thể tạo mã QR')
-  }
-}
-
-const sendBill = async (email, subject, text, billId) => {
-  try {
-    const data = billId.toString()
-    const qrCheckin = await generateQR(data)
-    
-    const mailOption = {
-      from: ticketPlazaEmailAccount.USERNAME,
-      to: email,
-      subject: subject,
-      html: text,
-      attachments: [{
-        filename: "qrCheckin.png",
-        content: qrCheckin,
-        encoding: 'base64'
-      }]
-    }
-
-    await transporter.sendMail(mailOption)
-  } catch (error) {
-    const customError = new Error('Lỗi gửi email, không thể gửi email!')
-    customError.originalError = error
-    throw customError
-  }
-}
+const { CLIENT_ENDPOINT } = require('../configs')
+const { sendRespone } = require('../utils/clientRespone')
+const { sortBillsByDateTime } = require('../utils/sortList')
+const { sendBill } = require('../utils/userRespone')
+const { calculateTotalAmountForEvent, calculateTotalMoney, calculateMoneyToPaid } = require('../utils/calculate')
 
 // Controller for bill
 const createBill = async (req, res, next) => {
@@ -228,9 +133,6 @@ const getBillDetail = async (req, res, next) => {
 
     const totalMoney = calculateTotalMoney(bill.tickets)
     const theMoneyHasToPaid = calculateMoneyToPaid(totalMoney, bill.discount)
-
-    console.log(totalMoney);
-    
 
     const billDetail = {
       _id: bill._id,

@@ -1,14 +1,6 @@
 // Import module for user controller
 const EventType = require('../models/EventType')
-
-// Respone function
-const sendRespone = (res, data, message, status = 201, pagination = {}) =>{
-  return res.status(status).json({
-    data: [ data ],
-    pagination,
-    message
-  })
-}
+const { sendRespone } = require('../utils/clientRespone')
 
 // Controllers for EventType
 const getEventTypes = async (req, res, next) => {     // Get a eventType list

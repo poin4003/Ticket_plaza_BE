@@ -1,68 +1,14 @@
 // Import module for event controller
 const dayjs = require('dayjs')
-const nodemailer = require('nodemailer')
 const Event = require('../models/Event')
+const EventType = require('../models/EventType')
 const Ticket = require('../models/Ticket')
 const Bill = require('../models/Bill')
 const User = require('../models/User')
 const { ticketPlazaEmailAccount } = require('../configs')     // Import environment value setup
-
-// Nodemailer transporter configs
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: ticketPlazaEmailAccount.USERNAME,
-    pass: ticketPlazaEmailAccount.PASSWORD
-  }
-})
-
-// Respone function
-const sendRespone = (res, data, message, status = 201, pagination = {}) =>{
-  return res.status(status).json({
-    data: [ data ],
-    pagination,
-    message
-  })
-}
-
-// Sort events by date time
-const sortEventsByDateTime = (events) => {
-  events.sort((a, b) => {
-    const timeA = a.time ? a.time.split(':') : ['00', '00']
-    const timeB = b.time ? b.time.split(':') : ['00', '00']
-
-    const dateA = dayjs(a.date).startOf('day').add(parseInt(timeA[0]), 'hour').add(parseInt(timeA[1]), 'minute')
-    const dateB = dayjs(b.date).startOf('day').add(parseInt(timeB[0]), 'hour').add(parseInt(timeB[1]), 'minute') 
-    
-    return dateA - dateB
-  })
-  return events
-}
-
-// Sort events by views
-const sortEventsByViews = (events) => {
-  events.sort((eventA, eventB) => eventB.views - eventA.views)
-  return events
-}
-
-// Check and update status to 2
-const checkAndUpdateEventStatus = async (events) => {
-  const currentDate = new Date()
-
-  for (const event of events) {
-    if (event.status !== 1) {
-      const eventDate = dayjs(event.date).add(event.durationDate, 'days').toDate()
-
-      if (currentDate > eventDate) {
-        event.status = 2
-        await event.save()
-      } else if (currentDate <= eventDate) {
-        event.status = 0
-        await event.save()
-      }
-    }
-  }
-}
+const { transporter, sendRespone } = require('../utils/clientRespone')
+const { sortEventsByDateTime, sortEventsByViews } = require('../utils/sortList')
+const { checkAndUpdateEventStatus } = require('../utils/dataHandler')
 
 // Controller for event
 const createNewEvent = async (req, res, next) => {   // Create new Event
@@ -138,6 +84,28 @@ const getEvents = async (req, res, next) => {      // Get list event
 
     return sendRespone(res, { data: events }, `${totalEvents} sự kiện đã được tìm thấy!`,
     201, pagination)
+  } catch (error) {
+    next(error)
+  }
+}
+
+const getEventDetail = async (req, res, next) => {
+  let { eventId } = req.query 
+
+  try {
+    const event = await Event.findById(eventId)
+
+    const tickets = await Ticket.find({ eventId: eventId })
+
+    const eventType = await EventType.findOne({ typeId: event.type }).select('eventTypeName')
+
+    const eventWithTickets = {
+      ...event.toObject(),
+      type: eventType.eventTypeName, 
+      tickets: tickets
+    }
+
+    return sendRespone(res, { data: eventWithTickets }, "Tìm thấy chi tiết sự kiện thành công!")
   } catch (error) {
     next(error)
   }
@@ -343,6 +311,7 @@ const updateEvent = async (req, res, next) => {   // Update event by id (patch)
 // Export controllers
 module.exports = {
   getEvents, 
+  getEventDetail,
   getRevenue,
   getViewList,
   createNewEvent,

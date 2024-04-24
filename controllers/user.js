@@ -1,64 +1,10 @@
 // Import module for user controller
-const nodemailer = require('nodemailer')
 const User = require('../models/User')
-const JWT = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')                            // Module for hash password handling
-
-
-// Config JsonWebToken
-const { JWT_SECRET, ticketPlazaEmailAccount, CLIENT_ENDPOINT } = require('../configs')
-
-const encodedToken = (userID) => {
-  return JWT.sign({
-    iss: "PcHuy",
-    sub: userID,
-    iat: new Date().getTime(),
-    exp: new Date().setDate(new Date().getDate() + 100)
-  }, JWT_SECRET)
-}
-
-// Nodemailer transporter configs
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: ticketPlazaEmailAccount.USERNAME,
-    pass: ticketPlazaEmailAccount.PASSWORD
-  }
-})
-
-// Temporary storage for OTP
-const otpStorage = {}
-let otpAttempts = {}
-
-// Supporting function
-const sendRespone = (res, data, message, status = 201, pagination = {}) =>{
-  return res.status(status).json({
-    data: [ data ],
-    pagination,
-    message
-  })
-}
-
-const generateAndSendOTP = async (email) => {
-  try {
-    const OTP = Math.floor(1000 + Math.random() * 9000)
-    const expirationTime = Date.now() + (5 * 60 * 1000)
-    otpStorage[email] = { OTP, expirationTime }
-
-    const mailOptions = {
-      from: 'ticketplaza1000@gmail.com',
-      to: email,
-      subject: 'OTP for password reset',
-      text: `Your OTP is: ${OTP}\nPlease request in 5 minutes`
-    }
-
-    await transporter.sendMail(mailOptions)
-
-    return OTP
-  } catch (error) {
-    console.log(error)
-  }
-}
+const { sendRespone } = require('../utils/clientRespone')
+const { encodedToken } = require('../utils/dataEncrypt')
+const { generateAndSendOTP, otpStorage, otpAttempts } = require('../utils/userRespone')
+const { CLIENT_ENDPOINT } = require('../configs')
 
 // Controller for Authentication
 const signIn = async (req, res, next) => {           // LogIn (post)
