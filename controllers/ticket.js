@@ -1,32 +1,8 @@
 // Import module for event controller
 const dayjs = require('dayjs')
 const Ticket = require('../models/Ticket')
-const Event = require('../models/Event')
-
-// Respone function
-const sendRespone = (res, data, message, status = 201, pagination = {}) =>{
-  return res.status(status).json({
-    data: [ data ],
-    pagination,
-    message
-  })
-}
-
-// Sort events by date time
-const sortTicketsByDateTime = (events) => {
-  events.sort((a, b) => {
-    const timeA = a.time ? a.time.split(':') : ['00', '00']
-    const timeB = b.time ? b.time.split(':') : ['00', '00']
-
-    const dateA = dayjs(a.releaseDate).startOf('day').add(parseInt(timeA[0]), 'hour').add(parseInt(timeA[1]), 'minute')
-    const dateB = dayjs(b.releaseDate).startOf('day').add(parseInt(timeB[0]), 'hour').add(parseInt(timeB[1]), 'minute') 
-    
-    return dateA - dateB
-  })
-  events.reverse()
-
-  return events
-}
+const { sendRespone } = require('../utils/clientRespone')
+const { sortTicketsByDateTime } = require('../utils/sortList')
 
 // Controller for ticket
 const createTicket = async (req, res, next) => {      // Create new ticket

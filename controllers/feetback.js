@@ -1,14 +1,6 @@
 // Import module for feetback controller
 const Feetback = require('../models/Feedback')
-
-// Respone function
-const sendRespone = (res, data, message, status = 201, pagination = {}) =>{
-  return res.status(status).json({
-    data: [ data ],
-    pagination,
-    message
-  })
-}
+const { sendRespone } = require('../utils/clientRespone')
 
 // Controller for feetback
 const createFeetback = async (req, res, next) => {

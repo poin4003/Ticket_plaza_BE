@@ -23,6 +23,10 @@ router.route('/')
     validateBody(schemas.eventSchema), 
     EventController.createNewEvent)
 
+router.route('/getEventDetail')
+  .get(passport.authenticate('jwt', { session: false }),
+    EventController.getEventDetail)
+
 router.route('/getRevenue')
   .get(passport.authenticate('jwt', { session: false }),
     EventController.getRevenue)
