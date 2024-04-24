@@ -1,3 +1,7 @@
+// Import module for bill controller
+const Bill = require('../models/Bill')
+const Ticket = require('../models/Ticket')
+
 const calculateTotalAmountForEvent = async (eventId) => {
   let totalAmount = 0
   const tickets = await Ticket.find({ eventId })
