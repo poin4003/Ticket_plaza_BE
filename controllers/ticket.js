@@ -79,38 +79,34 @@ const getTickets = async (req, res, next) => {        // Get list ticket
 
 const updateTicket = async (req, res, next) => {
   const { ticketId } = req.query 
+  const newTicket = req.value.body 
 
-  try {
-    const newTicket = req.value.body 
-    
-    const updateTicket = await Ticket.findByIdAndUpdate(ticketId, newTicket)
+  try { 
+    const foundTicket = await Ticket.findById(ticketId)
 
-    if (!updateTicket) return sendRespone(res, { data: [] }, "Không thể tìm thấy vé!")
+    if (!foundTicket) return sendRespone(res, { data: [] }, "Không thể tìm thấy vé!")
 
-    return sendRespone(res, { data: newTicket }, "Cập nhật thông tin vé thành công!")
+    foundTicket.set(newTicket)
+    await foundTicket.save()
+
+    return sendRespone(res, { data: foundTicket }, "Cập nhật thông tin vé thành công!")
   } catch (error) {
     next(error)
   }
 }
 
 const updateTicketTotalAmount = async (req, res, next) => {
-  let { ticketId, amountToMinus } = req.query 
+  let { ticketId, amount } = req.query 
 
   try {
-    let query = {}
-
-    if (ticketId) query._id = ticketId
-
-    const foundTicket = await Ticket.findOne(query)
+    const foundTicket = await Ticket.findById(ticketId).populate({ 
+      path: 'eventId', select: '_id maxTicketPerBill'
+    })
 
     if (!foundTicket) return sendRespone(res, { data: [] }, "Không thể tìm thấy vé!")
-  
-    const foundEvent = await Event.findOne(foundTicket.eventId)
-
-    if (!foundEvent) return sendRespone(res, { data: [] }, "Không thể tìm thấy sự kiện chứa vé!")
-
-    if (foundEvent.maxTicketPerBill > amountToMinus) {
-      foundTicket.totalAmount -= amountToMinus
+    
+    if (foundTicket.eventId.maxTicketPerBill >= parseInt(amount)) {
+      foundTicket.totalAmount += parseInt(amount)
       await foundTicket.save()
     } else {
       return sendRespone(res, { data: [] }, "Số vé vượt mức quy định!")
@@ -123,14 +119,10 @@ const updateTicketTotalAmount = async (req, res, next) => {
 }
 
 const activateTicket = async (req, res, next) => {
-  let { ticketId } = req.query
+  const { ticketId } = req.query
 
   try {
-    let query = {}
-
-    if (ticketId) query._id = ticketId
-
-    const foundTicket = await Ticket.findOne(query)
+    const foundTicket = await Ticket.findById(ticketId)
 
     if (!foundTicket) return sendRespone(res, { data: [] }, "Không thể tìm thấy vé!")
 
@@ -144,14 +136,10 @@ const activateTicket = async (req, res, next) => {
 }
 
 const deactivateTicket = async (req, res, next) => {
-  let { ticketId } = req.query
+  const { ticketId } = req.query
 
   try {
-    let query = {}
-
-    if (ticketId) query._id = ticketId
-
-    const foundTicket = await Ticket.findOne(query)
+    const foundTicket = await Ticket.findById(ticketId)
 
     if (!foundTicket) return sendRespone(res, { data: [] }, "Không thể tìm thấy vé!")
 

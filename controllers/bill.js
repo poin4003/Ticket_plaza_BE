@@ -89,7 +89,7 @@ const sendBill = async (email, subject, text, billId) => {
       from: ticketPlazaEmailAccount.USERNAME,
       to: email,
       subject: subject,
-      text: text,
+      html: text,
       attachments: [{
         filename: "qrCheckin.png",
         content: qrCheckin,
@@ -108,7 +108,7 @@ const sendBill = async (email, subject, text, billId) => {
 // Controller for bill
 const createBill = async (req, res, next) => {
   const newBill = new Bill(req.body)
-  const tickets = req.body.tickets
+  const tickets = newBill.tickets
 
   try {
     for (const ticket of tickets) {
@@ -263,15 +263,9 @@ const paid = async (req, res, next) => {
     const subject = splitExtraDate[0];
     const text = splitExtraDate[1];
 
-    let query = {};
-
-    if (billId) query._id = billId;
-
-    const foundBill = await Bill.findOne(query).populate({ path: 'userId', select: '_id email' });
+    const foundBill = await Bill.findById(billId).populate({ path: 'userId', select: '_id email' });
 
     if (!foundBill) return sendRespone(res, { data: [] }, "Không thể tìm thấy hóa đơn!");
-
-    let ticketList = [];
 
     let data = {
       data: [{
@@ -299,17 +293,11 @@ const paid = async (req, res, next) => {
       for (const ticketBill of foundBill.tickets) {
         const ticket = await Ticket.findById(ticketBill.ticketId);
         if (ticket) {
-          ticketList.push(ticket);
+          ticket.totalAmount += parseInt(ticketBill.amount)
+          await ticket.save()
         }
       }
-      for (const ticketToUpdate of ticketList) {
-        for (const ticketBill of foundBill.tickets) {
-          if (ticketToUpdate._id.equals(ticketBill.ticketId)) {
-            await ticketToUpdate.save();
-            break;
-          }
-        }
-      }
+     
       await foundBill.deleteOne();
 
       data = {
@@ -416,6 +404,12 @@ const getTotalAmountTicketOfEventList = async (req, res, next) => {
         { members: { $in: [member] } }
       ]
     } 
+    if (startDate && endDate) {
+      startDate = dayjs(startDate).startOf('day').toDate()
+      endDate = dayjs(endDate).endOf('day').toDate()
+
+      billQuery.date = { $gte: startDate, $lte: endDate } 
+    }
     if (status) eventQuery.status = status
 
     const eventList = await Event.find(eventQuery).select(
@@ -446,6 +440,14 @@ const deleteBill = async (req, res, next) => {
     if (!foundBill) return sendRespone(res, { data: [] }, "Không thể tìm thấy hóa đơn")
 
     if (foundBill.status === 0) {
+      for (const ticketBill of foundBill.tickets) {
+        const ticket = await Ticket.findById(ticketBill.ticketId)
+        if (ticket) {
+          ticket.totalAmount += parseInt(ticketBill.amount)
+          await ticket.save()
+        }
+      }
+
       await foundBill.deleteOne()
     } else {
       return sendRespone(res, { data: [] }, "Không thể xóa hóa đơn đã thanh toán!")

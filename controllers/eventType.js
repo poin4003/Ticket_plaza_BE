@@ -48,6 +48,7 @@ const getEventTypes = async (req, res, next) => {     // Get a eventType list
 
 const updateEventType = async (req, res, next) => {
   let { eventTypeId, typeId } = req.query
+  const newEventType = req.value.body
 
   try {
     const query = {};
@@ -55,15 +56,14 @@ const updateEventType = async (req, res, next) => {
     if (eventTypeId) query._id = eventTypeId
     if (typeId) query = { typeId: { $regex: typeId, $options: 'i'} }
 
-    const eventType = await EventType.findOne(query)
+    const foundEventType = await EventType.findOne(query)
 
-    if (!eventType) return sendRespone(res, { data: [] }, "Không thể tìm thấy kiểu sự kiện!")
+    if (!foundEventType) return sendRespone(res, { data: [] }, "Không thể tìm thấy kiểu sự kiện!")
     
-    const newEventType = req.value.body
+    foundEventType.set(newEventType)
+    foundEventType.save()
 
-    const udpateEventType = await EventType.findByIdAndUpdate(eventType._id, newEventType)
-
-    return sendRespone(res, { data: newEventType }, "Cập nhật kiểu sự kiện thành công!")
+    return sendRespone(res, { data: foundEventType }, "Cập nhật kiểu sự kiện thành công!")
   } catch (error) {
     next(error)
   }
