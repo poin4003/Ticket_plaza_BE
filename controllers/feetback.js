@@ -1,5 +1,6 @@
 // Import module for feetback controller
 const Feetback = require('../models/Feedback')
+const User = require('../models/User')
 const { sendRespone } = require('../utils/clientRespone')
 
 // Controller for feetback
@@ -27,13 +28,21 @@ const getFeetbacks = async (req, res, next) => {
     if (status) feetbackquery.status = status 
 
     let feetbacks = await Feetback.find(feetbackquery).skip(skip).limit(limit).populate({ path: 'eventId', select: '_id name' })
+    .populate({ path: 'billId', select: 'userId'})
 
     if (feetbacks.length === 0) return sendRespone(res, { data: [] }, "Không thể tìm thấy thông tin phản hồi!")
 
-    feetbacks = feetbacks.map(feetback => ({
-      ...feetback.toObject(),
-      event: feetback.eventId
-    }))
+    for (let i = 0; i < feetbacks.length; i++) {
+      const user = await User.findById(feetbacks[i].billId.userId).select('_id fullName email')
+      if (!user) return sendRespone(res, { data: [] }, "Không thể tìm thấy người dùng!")
+      feetbacks[i] = {
+        ...feetbacks[i].toObject(),
+        event: feetbacks[i].eventId,
+        user: user
+      }
+      delete feetbacks[i].eventId
+      delete feetbacks[i].billId
+    }
 
     const totalFeetbacks = await Feetback.countDocuments(feetbackquery)
 
