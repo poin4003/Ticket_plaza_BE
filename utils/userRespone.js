@@ -57,7 +57,7 @@ const sendBill = async (subject, text, bill) => {
       discount: bill?.discount,
       theMoneyHasToPaid: CurrencyDisplay(bill?.theMoneyHasToPaid),
       tickets: bill?.tickets.map((ticket, index) => ({
-        index: index + 2,
+        stt: index + 2,
         name: ticket?.name,
         price: CurrencyDisplay(ticket?.price),
         amount: ticket?.amount,

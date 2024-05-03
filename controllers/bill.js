@@ -334,18 +334,23 @@ const getTotalAmountTicketOfEventList = async (req, res, next) => {
   let { host, member, status, startDate, endDate } = req.query
 
   try {
-    let eventQuery = {}
+    let billQuery = {}
+
+    if (startDate && endDate) {
+      startDate = dayjs(startDate).startOf('day').toDate()
+      endDate = dayjs(endDate).endOf('day').toDate()
+
+      billQuery.date = { $gte: startDate, $lte: endDate }
+    }
+
+    const billList = await Bill.find(billQuery).select('_id eventId tickets')
+
+    const eventQuery = {}
     if (host || member) {
       eventQuery.$or = [
         { host },
         { members: { $in: [member] } }
       ]
-    }
-    if (startDate && endDate) {
-      startDate = dayjs(startDate).startOf('day').toDate()
-      endDate = dayjs(endDate).endOf('day').toDate()
-
-      eventQuery.date = { $gte: startDate, $lte: endDate }
     }
     if (status) eventQuery.status = status
 
@@ -357,9 +362,16 @@ const getTotalAmountTicketOfEventList = async (req, res, next) => {
     let amountOfTicketList = []
 
     for (const event of eventList) {
-      const totalAmount = await calculateTotalAmountForEvent(event._id)
+      let totalAmountOfEvent = 0
+      for (const bill of billList) {
+        if (bill.eventId.toString() === event._id.toString()) {
+          for (const ticket of bill.tickets) {
+            totalAmountOfEvent += ticket.amount 
+          }
+        }
+      }
       eventNameList.push(event.name)
-      amountOfTicketList.push(totalAmount)
+      amountOfTicketList.push(totalAmountOfEvent)
     }
 
     sendRespone(res, { eventNameList, amountOfTicketList }, "Tìm tên và số lượng vé tương ứng của sự kiện thành công!")
