@@ -1,7 +1,11 @@
+
 const { ticketPlazaEmailAccount } = require('../configs')
 const { transporter } = require('./clientRespone')
 const { generateQR } = require('./dataEncrypt')
-
+const fs = require('fs')
+const handlebars = require('handlebars')
+const path = require('path');
+const { formatDate, CurrencyDisplay } = require('./htmlRender')
 
 // Temporary storage for OTP
 const otpStorage = {}
@@ -28,22 +32,51 @@ const generateAndSendOTP = async (email) => {
   }
 }
 
-const sendBill = async (email, subject, text, billId) => {
+const sendBill = async (subject, text, bill) => {
   try {
-    const data = billId.toString()
+    const data = bill._id.toString()
     const qrCheckin = await generateQR(data)
-    
+
+    const filePath = path.join(__dirname, 'test.html');
+
+    const htmlSrc = fs.readFileSync(filePath, 'utf8');
+
+    const template = handlebars.compile(htmlSrc);
+
+    const replacement = {
+      _id: bill?._id,
+      date: formatDate(bill?.date, "DD/MM/YYYY | HH:mm"),
+      event: bill?.event,
+      fullName: bill?.user?.fullName,
+      email: bill?.user?.email,
+      checkoutMethod: bill?.checkoutMethod,
+      totalMoney: CurrencyDisplay(bill?.totalMoney),
+      discount: bill?.discount,
+      theMoneyHasToPaid: CurrencyDisplay(bill?.theMoneyHasToPaid),
+      tickets: bill?.tickets.map((ticket, index) => ({
+        index: index + 2,
+        name: ticket?.name,
+        price: CurrencyDisplay(ticket?.price),
+        amount: ticket?.amount,
+        totalMoneyOfTicket: CurrencyDisplay(ticket?.totalMoneyOfTicket)
+      }))
+    };
+
+    const htmlToSend = template(replacement);
+
     const mailOption = {
       from: ticketPlazaEmailAccount.USERNAME,
-      to: email,
+      to: bill?.user?.email,
       subject: subject,
-      html: text,
+      html: htmlToSend,
       attachments: [{
         filename: "qrCheckin.png",
         content: qrCheckin,
         encoding: 'base64'
       }]
     }
+
+    console.log(mailOption);
 
     await transporter.sendMail(mailOption)
   } catch (error) {

@@ -22,7 +22,7 @@ const calculateTotalAmountForEvent = async (eventId) => {
 const calculateTotalMoney = (tickets) => {
   let totalPrice = 0
   for (const ticket of tickets) {
-    totalPrice += ticket.price
+    totalPrice += ticket.totalMoneyOfTicket
   }
   return totalPrice
 }

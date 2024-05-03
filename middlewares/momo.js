@@ -127,7 +127,7 @@ const redirectFunction = (req, res, next) => {
   if (!payUrl) {
     return sendRespone(res, { data: [] }, "Không thể tạo link thanh toán Momo!")
   }
-  res.redirect(payUrl)
+  res.json({payUrl})
 }
 
 module.exports = { paidByMomo, redirectFunction }

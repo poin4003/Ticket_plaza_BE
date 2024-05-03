@@ -20,13 +20,13 @@ const createBill = async (req, res, next) => {
       const { ticketId, amount } = ticket
 
       const foundTicket = await Ticket.findById(ticketId)
-      
+
       if (foundTicket.totalAmount >= amount && foundTicket.totalAmount !== 0) {
-        
+
         foundTicket.totalAmount -= amount
         await foundTicket.save()
       } else {
-        return sendRespone(res, { data: []}, "Số lượng vượt quá số vé trong kho!")
+        return sendRespone(res, { data: [] }, "Số lượng vượt quá số vé trong kho!")
       }
     }
     var theAmountPaid = (newBill.totalPrice - (newBill.totalPrice * (newBill.discount / 100)))
@@ -39,8 +39,8 @@ const createBill = async (req, res, next) => {
 }
 
 const getBills = async (req, res, next) => {
-  let { page, limit, status, eventId, email, 
-    ticketId, startDate, billId, endDate} = req.query
+  let { page, limit, status, eventId, email,
+    ticketId, startDate, billId, endDate } = req.query
 
   limit = parseInt(limit) || 8
   page = parseInt(page) || 1
@@ -49,12 +49,12 @@ const getBills = async (req, res, next) => {
 
   try {
     let userQuery = {}
-    if (email) userQuery.email = email 
+    if (email) userQuery.email = email
 
     const users = await User.findOne(userQuery).select('_id fullName email phone')
 
     let billQuery = {}
-    
+
     if (email) billQuery.userId = users._id
     if (status) billQuery.status = status
     if (eventId) billQuery.eventId = eventId
@@ -63,17 +63,17 @@ const getBills = async (req, res, next) => {
     if (startDate && endDate) {
       startDate = dayjs(startDate).startOf('day').toDate()
       endDate = dayjs(endDate).endOf('day').toDate()
-      
+
       billQuery.date = { $gte: startDate, $lte: endDate }
     }
 
-    let bills = await Bill.find(billQuery).skip(skip).limit(limit).select('-tickets').populate({ 
+    let bills = await Bill.find(billQuery).skip(skip).limit(limit).select('-tickets').populate({
       path: 'userId',
       select: '_id email'
     })
-       
+
     if (bills.length === 0) return sendRespone(res, { data: [] }, "Không thể tìm thấy hóa đơn!")
- 
+
     bills = sortBillsByDateTime(bills)
 
     for (let i = 0; i < bills.length; i++) {
@@ -99,7 +99,7 @@ const getBills = async (req, res, next) => {
     }
 
     return sendRespone(res, { data: bills }, `${totalBills} hoá đơn đã được tìm thấy!`,
-    201, pagination)
+      201, pagination)
   } catch (error) {
     next(error)
   }
@@ -108,14 +108,14 @@ const getBills = async (req, res, next) => {
 const getBillDetail = async (req, res, next) => {
   let { billId } = req.query
 
-  try { 
-    let bill = await Bill.findById(billId).populate({ 
+  try {
+    let bill = await Bill.findById(billId).populate({
       path: 'userId',
       select: '_id fullName email phone'
     })
- 
+
     if (!bill) return sendRespone(res, { data: [] }, "Không thể tìm thấy hóa đơn!")
- 
+
     const event = await Event.findById(bill.eventId).select('name')
     if (!event) return sendRespone(res, { data: [] }, "Không thể tìm thấy sự kiện trong hóa đơn!")
 
@@ -131,7 +131,7 @@ const getBillDetail = async (req, res, next) => {
       })
     }
 
-    const totalMoney = calculateTotalMoney(bill.tickets)
+    const totalMoney = calculateTotalMoney(tickets)
     const theMoneyHasToPaid = calculateMoneyToPaid(totalMoney, bill.discount)
 
     const billDetail = {
@@ -156,11 +156,10 @@ const getBillDetail = async (req, res, next) => {
 
 const paid = async (req, res, next) => {
   let { orderId, message, orderInfo, extraData } = req.query;
-
   try {
     const splitOrderId = orderId.split(".");
     const billId = splitOrderId[1];
-    
+
     const splitExtraDate = extraData.split("<splitText>");
     const subject = splitExtraDate[0];
     const text = splitExtraDate[1];
@@ -199,7 +198,7 @@ const paid = async (req, res, next) => {
           await ticket.save()
         }
       }
-     
+
       await foundBill.deleteOne();
 
       data = {
@@ -211,10 +210,45 @@ const paid = async (req, res, next) => {
       };
     }
 
-    res.redirect(`${CLIENT_ENDPOINT}?data=${encodeURIComponent(JSON.stringify(data))}`);
+    res.redirect(`${CLIENT_ENDPOINT}/events?paymentMessage=${encodeURIComponent(JSON.stringify(data?.message))}`);
 
     if (message === 'Successful.') {
-      sendBill(foundBill.userId.email, subject, text, foundBill._id);
+      let bill = await Bill.findById(billId).populate({
+        path: 'userId',
+        select: '_id fullName email phone'
+      })
+
+      if (!bill) return sendRespone(res, { data: [] }, "Không thể tìm thấy hóa đơn!")
+
+      const event = await Event.findById(bill.eventId).select('name')
+      if (!event) return sendRespone(res, { data: [] }, "Không thể tìm thấy sự kiện trong hóa đơn!")
+      let tickets = [];
+      for (const ticket of bill.tickets) {
+        const ticketDetail = await Ticket.findById(ticket.ticketId);
+        tickets.push({
+          name: ticketDetail.name,
+          amount: ticket.amount,
+          price: ticket.price,
+          totalMoneyOfTicket: ticket.amount * ticket.price,
+          _id: ticket._id
+        })
+      }
+      const totalMoney = calculateTotalMoney(tickets)
+      const theMoneyHasToPaid = calculateMoneyToPaid(totalMoney, bill.discount)
+      const billDetail = {
+        _id: bill._id,
+        date: bill.date,
+        user: bill.userId,
+        event: event.name,
+        tickets: tickets,
+        totalMoney: totalMoney,
+        discount: bill.discount,
+        theMoneyHasToPaid: theMoneyHasToPaid,
+        checkoutMethod: bill.checkoutMethod,
+        status: bill.status,
+        __v: bill.__v
+      }
+      sendBill(subject, text, billDetail);
     }
   } catch (error) {
     next(error);
@@ -222,7 +256,7 @@ const paid = async (req, res, next) => {
 }
 
 const checkin = async (req, res, next) => {
-  let { billId } = req.query 
+  let { billId } = req.query
   console.log(billId);
   try {
     let query = {}
@@ -235,7 +269,7 @@ const checkin = async (req, res, next) => {
 
     if (foundBill.status === 0) {
       return sendRespone(res, { data: [] }, "Hóa đơn chưa được thanh toán! Vui lòng thanh toán trước!")
-    } else if (foundBill.status === 1){ 
+    } else if (foundBill.status === 1) {
       foundBill.status = 2
       await foundBill.save()
     } else if (foundBill.status === 2) {
@@ -249,7 +283,7 @@ const checkin = async (req, res, next) => {
 }
 
 const getRevenueList = async (req, res, next) => {
-  let { host, member, status, startDate, endDate } = req.query 
+  let { host, member, status, startDate, endDate } = req.query
 
   try {
     let billQuery = {}
@@ -257,22 +291,22 @@ const getRevenueList = async (req, res, next) => {
       startDate = dayjs(startDate).startOf('day').toDate()
       endDate = dayjs(endDate).endOf('day').toDate()
 
-      billQuery.date = { $gte: startDate, $lte: endDate } 
+      billQuery.date = { $gte: startDate, $lte: endDate }
     }
 
     const billList = await Bill.find(billQuery).select('_id eventId totalPrice discount')
-    
+
     const eventQuery = {}
     if (host || member) {
       eventQuery.$or = [
         { host },
         { members: { $in: [member] } }
       ]
-    } 
-    if (status) eventQuery.status = status 
-    
+    }
+    if (status) eventQuery.status = status
+
     const eventList = await Event.find(eventQuery).select('_id name host type status views')
-    
+
     let eventNameList = []
     let revenueList = []
 
@@ -305,12 +339,12 @@ const getTotalAmountTicketOfEventList = async (req, res, next) => {
         { host },
         { members: { $in: [member] } }
       ]
-    } 
+    }
     if (startDate && endDate) {
       startDate = dayjs(startDate).startOf('day').toDate()
       endDate = dayjs(endDate).endOf('day').toDate()
 
-      eventQuery.date = { $gte: startDate, $lte: endDate } 
+      eventQuery.date = { $gte: startDate, $lte: endDate }
     }
     if (status) eventQuery.status = status
 

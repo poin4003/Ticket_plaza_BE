@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<style>
+  .border-container {
+    padding: 24px;
+    border: 1px solid black;
+    width: 500px;
+    font-family: sans-serif;
+  }
+
+  .item-container {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .label-header {
+    font-weight: 500;
+    margin-bottom: 0px;
+    line-height: 1.5715;
+    color: rgba(0, 0, 0, 0.85);
+    font-weight: bold;
+  }
+
+  .table-container {
+    margin-bottom: 20px;
+  }
+
+  .table-center {
+    width: 100%;
+    text-align: center;
+  }
+
+  .table-header {
+    background-color: rgba(255, 255, 255, 0.85);
+    height: 30px;
+  }
+</style>
+
+<body>
+  <div style="padding: 24px;border: 1px solid black;width: 500px; font-family: sans-serif;">
+    <div style="display: flex; margin-bottom: 20px;">
+      <label
+        style="font-weight: 500; margin-bottom: 0px; width: 40%; color: rgba(0, 0, 0, 0.85);font-weight: bold;">
+        Mã hóa đơn:
+      </label>
+      <div style="width: 60%; text-align: right;color: black">
+        {{_id}}
+      </div>
+    </div>
+    <div style="display: flex; margin-bottom: 20px;">
+      <label
+        style="font-weight: 500; margin-bottom: 0px; width: 40%; color: rgba(0, 0, 0, 0.85);font-weight: bold;">
+        Thời gian tạo:
+      </label>
+      <div style="width: 60%; text-align: right;color: black">
+        {{date}}
+      </div>
+    </div>
+    <div style="display: flex; margin-bottom: 20px;">
+      <label
+        style="font-weight: 500; margin-bottom: 0px; width: 40%; color: rgba(0, 0, 0, 0.85);font-weight: bold;">
+        Sự kiện:
+      </label>
+      <div style="width: 60%; text-align: right;color: black">
+        {{event}}
+      </div>
+    </div>
+    <div style="display: flex; margin-bottom: 20px;">
+      <label
+        style="font-weight: 500; margin-bottom: 0px; width: 40%; color: rgba(0, 0, 0, 0.85);font-weight: bold;">
+        Họ tên khách hàng:
+      </label>
+      <div style="width: 60%; text-align: right;color: black">
+        {{fullName}}
+      </div>
+    </div>
+    <div style="display: flex; margin-bottom: 20px;">
+      <label
+        style="font-weight: 500; margin-bottom: 0px; width: 40%; color: rgba(0, 0, 0, 0.85);font-weight: bold;">
+        Email:
+      </label>
+      <div style="width: 60%; text-align: right;color: black">
+        {{email}}
+      </div>
+    </div>
+    <div style="margin-bottom: 20px;">
+      <label
+        style="font-weight: 500; margin-bottom: 0px; width: 40%; color: rgba(0, 0, 0, 0.85);font-weight: bold;">
+        Chi tiết vé:
+      </label>
+      <div>
+        <table border="1" style="width: 100%; text-align: center;">
+          <thead style="background-color: rgba(255, 255, 255, 0.85); height: 30px;">
+            <td>STT</td>
+            <td>Vé</td>
+            <td>Giá</td>
+            <td>SL</td>
+            <td>Thành tiền</td>
+          </thead>
+          <tbody>
+            {{#each tickets}}
+            <tr>
+              <td>{{@index}}</td>
+              <td>{{name}}</td>
+              <td>{{price}} VNĐ</td>
+              <td>{{amount}}</td>
+              <td>{{totalMoneyOfTicket}} VNĐ</td>
+            </tr>
+            {{/each}}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div style="display: flex; margin-bottom: 20px;">
+      <label
+        style="font-weight: 500; margin-bottom: 0px; width: 40%; color: rgba(0, 0, 0, 0.85);font-weight: bold;">
+        Phương thức:
+      </label>
+      <div style="width: 60%; text-align: right;color: black">
+        {{checkoutMethod}}
+      </div>
+    </div>
+    <div style="display: flex; margin-bottom: 20px;">
+      <label
+        style="font-weight: 500; margin-bottom: 0px; width: 40%; color: rgba(0, 0, 0, 0.85);font-weight: bold;">
+        Tổng cộng:
+      </label>
+      <div style="width: 60%; text-align: right;color: black">
+        {{totalMoney}} VNĐ
+      </div>
+    </div>
+    <div style="display: flex; margin-bottom: 20px;">
+      <label
+        style="font-weight: 500; margin-bottom: 0px; width: 40%; color: rgba(0, 0, 0, 0.85);font-weight: bold;">
+        Giảm giá:
+      </label>
+      <div style="width: 60%; text-align: right;color: black">
+        {{discount}} %
+      </div>
+    </div>
+    <div style="display: flex; margin-bottom: 20px;">
+      <label
+        style="font-weight: 500; margin-bottom: 0px; width: 40%; color: rgba(0, 0, 0, 0.85);font-weight: bold;">
+        Thành tiền:
+      </label>
+      <div style="width: 60%; text-align: right;color: black">
+        {{theMoneyHasToPaid}} VNĐ
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>
