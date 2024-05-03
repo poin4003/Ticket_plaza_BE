@@ -52,6 +52,9 @@ router.route('/login')   // Route for login
 router.route('/forgotPassword')
   .post(UserController.forgotPassword)
 
+router.route('/verifyEmail')
+  .post(UserController.verifyEmail)
+
 router.route('/verifyOTP')
   .post(UserController.verifyOTP)
   

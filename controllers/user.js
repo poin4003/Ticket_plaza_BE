@@ -116,6 +116,30 @@ const forgotPassword = async (req, res, next) => {
   }
 }
 
+const verifyEmail = async (req, res, next) => {
+  const { email } = req.query
+
+  try {
+    if (!email) {
+      return sendRespone(res, { data: [] }, "Email chưa được cung cấp!")
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      return sendRespone(res, { data: [] }, "Email không hợp lệ!")
+    }
+
+    const query = {} 
+    query.email = { $regex: new RegExp(email, 'i') }
+    
+    const OTP = await generateAndSendOTP(email)
+    
+    return sendRespone(res, { status: true}, "Gửi email thành công!")
+  } catch (error) {
+    next(error)
+  }
+}
+
 // Controller for Verifying OTP
 const verifyOTP = async (req, res, next) => {
   const { email, otp } = req.query;
@@ -294,6 +318,7 @@ module.exports = {
   signUp,
   authGoogle,
   forgotPassword,
+  verifyEmail,
   verifyOTP,
   getUsers,
   createNewUser,
