@@ -218,8 +218,7 @@ const schemas = {
     billId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
     orderInfo: Joi.string().required(),
     amount: Joi.number().required(),
-    subject: Joi.string().required(),
-    text: Joi.string().required()
+    subject: Joi.string().required()
   })
 }
 
