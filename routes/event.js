@@ -24,8 +24,7 @@ router.route('/')
     EventController.createNewEvent)
 
 router.route('/getEventDetail')
-  .get(passport.authenticate('jwt', { session: false }),
-    EventController.getEventDetail)
+  .get(EventController.getEventDetail)
 
 router.route('/getRevenue')
   .get(passport.authenticate('jwt', { session: false }),
