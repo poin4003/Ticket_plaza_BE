@@ -60,4 +60,17 @@ const uploadImageToCloudOptional = async (req, res, next) => {
   }
 }
 
-module.exports = { cloudinary, uploadImageToCloud, uploadImageToCloudOptional }
+const uploadQRCode = async (fileStr) => {
+  try {
+    const uploadedRespone = await cloudinary.uploader.upload(fileStr, {
+      upload_preset: 'dev_setup'
+    });
+    
+    return uploadedRespone.url
+  } catch (error) {
+    console.error(error);
+    return ""
+  }
+}
+
+module.exports = { cloudinary, uploadImageToCloud, uploadImageToCloudOptional, uploadQRCode }

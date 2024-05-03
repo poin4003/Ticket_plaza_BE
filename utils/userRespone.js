@@ -6,6 +6,7 @@ const fs = require('fs')
 const handlebars = require('handlebars')
 const path = require('path');
 const { formatDate, CurrencyDisplay } = require('./htmlRender')
+const { uploadQRCode } = require('../middlewares/cloudinary')
 
 // Temporary storage for OTP
 const otpStorage = {}
@@ -36,6 +37,7 @@ const sendBill = async (subject, text, bill) => {
   try {
     const data = bill._id.toString()
     const qrCheckin = await generateQR(data)
+    const qrUrl = await uploadQRCode(qrCheckin)
 
     const filePath = path.join(__dirname, 'test.html');
 
@@ -44,9 +46,10 @@ const sendBill = async (subject, text, bill) => {
     const template = handlebars.compile(htmlSrc);
 
     const replacement = {
-      _id: bill?._id,
-      date: formatDate(bill?.date, "DD/MM/YYYY | HH:mm"),
-      event: bill?.event,
+      _id: qrUrl,
+      date: formatDate(bill?.date, "DD/MM/YYYY HH:mm:ss"),
+      event: bill?.eventName,
+      eventDate: formatDate(bill?.eventDate, "DD/MM/YYYY HH:mm:ss"),
       fullName: bill?.user?.fullName,
       email: bill?.user?.email,
       checkoutMethod: bill?.checkoutMethod,
@@ -68,15 +71,8 @@ const sendBill = async (subject, text, bill) => {
       from: ticketPlazaEmailAccount.USERNAME,
       to: bill?.user?.email,
       subject: subject,
-      html: htmlToSend,
-      attachments: [{
-        filename: "qrCheckin.png",
-        content: qrCheckin,
-        encoding: 'base64'
-      }]
+      html: htmlToSend
     }
-
-    console.log(mailOption);
 
     await transporter.sendMail(mailOption)
   } catch (error) {

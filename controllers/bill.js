@@ -220,7 +220,7 @@ const paid = async (req, res, next) => {
 
       if (!bill) return sendRespone(res, { data: [] }, "Không thể tìm thấy hóa đơn!")
 
-      const event = await Event.findById(bill.eventId).select('name')
+      const event = await Event.findById(bill.eventId).select('name date')
       if (!event) return sendRespone(res, { data: [] }, "Không thể tìm thấy sự kiện trong hóa đơn!")
       let tickets = [];
       for (const ticket of bill.tickets) {
@@ -239,7 +239,8 @@ const paid = async (req, res, next) => {
         _id: bill._id,
         date: bill.date,
         user: bill.userId,
-        event: event.name,
+        eventName: event.name,
+        eventDate: event.date,
         tickets: tickets,
         totalMoney: totalMoney,
         discount: bill.discount,

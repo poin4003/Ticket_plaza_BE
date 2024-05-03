@@ -14,8 +14,8 @@ const encodedToken = (userID) => {
 const generateQR = async (billId) => {
   try {
     const qrDataURL = await qr.toDataURL(billId)
-    const qrBuffer = Buffer.from(qrDataURL.split(',')[1], 'base64')
-    return qrBuffer
+    //const qrBuffer = Buffer.from(qrDataURL.split(',')[1], 'base64')
+    return qrDataURL
   } catch (error) {
     throw new Error('Không thể tạo mã QR')
   }
