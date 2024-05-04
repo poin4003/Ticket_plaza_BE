@@ -74,8 +74,6 @@ const getBills = async (req, res, next) => {
 
     if (bills.length === 0) return sendRespone(res, { data: [] }, "Không thể tìm thấy hóa đơn!")
 
-    bills = sortBillsByDateTime(bills)
-
     for (let i = 0; i < bills.length; i++) {
       const event = await Event.findById(bills[i].eventId).select('name')
       if (!event) return sendRespone(res, { data: [] }, "Không thể tìm thấy sự kiện!")
@@ -98,6 +96,8 @@ const getBills = async (req, res, next) => {
       totalPages: totalPages
     }
 
+    bills = sortBillsByDateTime(bills)
+    
     return sendRespone(res, { data: bills }, `${totalBills} hoá đơn đã được tìm thấy!`,
       201, pagination)
   } catch (error) {
@@ -366,7 +366,7 @@ const getTotalAmountTicketOfEventList = async (req, res, next) => {
       for (const bill of billList) {
         if (bill.eventId.toString() === event._id.toString()) {
           for (const ticket of bill.tickets) {
-            totalAmountOfEvent += ticket.amount 
+            totalAmountOfEvent += ticket.amount
           }
         }
       }
