@@ -67,7 +67,7 @@ const getBills = async (req, res, next) => {
       billQuery.date = { $gte: startDate, $lte: endDate }
     }
 
-    let bills = await Bill.find(billQuery).skip(skip).limit(limit).select('-tickets').populate({
+    let bills = await Bill.find(billQuery).sort({date: 'desc'}).skip(skip).limit(limit).select('-tickets').populate({
       path: 'userId',
       select: '_id email'
     })
@@ -96,8 +96,6 @@ const getBills = async (req, res, next) => {
       totalPages: totalPages
     }
 
-    bills = sortBillsByDateTime(bills)
-    
     return sendRespone(res, { data: bills }, `${totalBills} hoá đơn đã được tìm thấy!`,
       201, pagination)
   } catch (error) {
@@ -366,7 +364,7 @@ const getTotalAmountTicketOfEventList = async (req, res, next) => {
       for (const bill of billList) {
         if (bill.eventId.toString() === event._id.toString()) {
           for (const ticket of bill.tickets) {
-            totalAmountOfEvent += ticket.amount
+            totalAmountOfEvent += ticket.amount 
           }
         }
       }
