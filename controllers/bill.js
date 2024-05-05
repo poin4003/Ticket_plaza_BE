@@ -37,6 +37,7 @@ const createBill = async (req, res, next) => {
   }
 }
 
+// Get bill list
 const getBills = async (req, res, next) => {
   let { page, limit, status, eventId, email,
     ticketId, startDate, billId, endDate } = req.query
