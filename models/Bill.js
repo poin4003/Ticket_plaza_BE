@@ -32,6 +32,10 @@ const BillSchema = new Schema({
   checkoutMethod: {
     type: String
   },
+  feetbackStatus: {
+    type: Number,
+    default: 0
+  },
   status: {
     type: Number
   }

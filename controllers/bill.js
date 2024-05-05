@@ -280,6 +280,27 @@ const checkin = async (req, res, next) => {
   }
 }
 
+const updateFeetbackStatus = async (req, res, next) => {
+  let { billId } = req.query 
+
+  try {
+    const foundBill = await Bill.findById(billId)
+
+    if (!foundBill) return sendRespone(res, { data: [] }, "Không thể tìm thấy hóa đơn!")
+
+    if (foundBill.status === 2) {
+      foundBill.feetbackStatus = 1
+    } else {
+      return sendRespone(res, { data: [] }, "Hóa đơn chưa được checkin!")
+    }
+    await foundBill.save()
+
+    return sendRespone(res, { data: foundBill }, "Cập nhật trạng thái feetback của hóa đơn thành công!")
+  } catch (error) {
+    next(error)
+  }
+}
+
 const getRevenueList = async (req, res, next) => {
   let { host, member, status, startDate, endDate } = req.query
 
@@ -413,5 +434,6 @@ module.exports = {
   createBill,
   paid,
   checkin,
+  updateFeetbackStatus,
   deleteBill
 }

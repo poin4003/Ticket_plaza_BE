@@ -173,6 +173,7 @@ const schemas = {
     totalPrice: Joi.number().required(),
     discount: Joi.number().min(0).max(100).required(),
     checkoutMethod: Joi.string().required(),
+    feetbackStatus: Joi.number(),
     status: Joi.number().required()
   }),
   
@@ -183,6 +184,7 @@ const schemas = {
     tickets: Joi.array().items(ticketForBillSchema),
     totalPrice: Joi.number(),
     discount: Joi.number().min(0).max(100),
+    feetbackStatus: Joi.number(),
     checkoutMethod: Joi.string(),
     status: Joi.number()
   }),
