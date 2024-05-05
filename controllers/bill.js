@@ -9,7 +9,7 @@ const { sendRespone } = require('../utils/clientRespone')
 const { sendBill } = require('../utils/userRespone')
 const { calculateTotalMoney, calculateMoneyToPaid } = require('../utils/calculate')
 
-// Controller for bill
+// Create bill
 const createBill = async (req, res, next) => {
   const newBill = new Bill(req.body)
   const tickets = newBill.tickets
