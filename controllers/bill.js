@@ -6,9 +6,8 @@ const User = require('../models/User')
 const dayjs = require('dayjs')
 const { CLIENT_ENDPOINT } = require('../configs')
 const { sendRespone } = require('../utils/clientRespone')
-const { sortBillsByDateTime } = require('../utils/sortList')
 const { sendBill } = require('../utils/userRespone')
-const { calculateTotalAmountForEvent, calculateTotalMoney, calculateMoneyToPaid } = require('../utils/calculate')
+const { calculateTotalMoney, calculateMoneyToPaid } = require('../utils/calculate')
 
 // Controller for bill
 const createBill = async (req, res, next) => {

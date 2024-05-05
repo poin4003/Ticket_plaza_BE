@@ -2,7 +2,6 @@
 const dayjs = require('dayjs')
 const Ticket = require('../models/Ticket')
 const { sendRespone } = require('../utils/clientRespone')
-const { sortTicketsByDateTime } = require('../utils/sortList')
 
 // Controller for ticket
 const createTicket = async (req, res, next) => {      // Create new ticket
@@ -30,7 +29,7 @@ const getTickets = async (req, res, next) => {        // Get list ticket
     if (name) ticketQuery.name = { $regex: new RegExp(name, 'i') }
     if (status) ticketQuery.status = status
     
-    let tickets = await Ticket.find(ticketQuery).skip(skip).limit(limit)
+    let tickets = await Ticket.find(ticketQuery).sort({ releaseDate: 'desc' }).skip(skip).limit(limit)
 
     if (tickets.length === 0) return sendRespone(res, { data: [] }, "Không thể tìm thấy vé!")
 
@@ -42,8 +41,6 @@ const getTickets = async (req, res, next) => {        // Get list ticket
       currentPage: page,
       total: totalPages
     }
-
-    tickets = sortTicketsByDateTime(tickets)
 
     return sendRespone(res, { data: tickets }, `${totalTickets} vé đã được tìm thấy`,
     201, pagination)

@@ -7,7 +7,6 @@ const Bill = require('../models/Bill')
 const User = require('../models/User')
 const { ticketPlazaEmailAccount } = require('../configs')     // Import environment value setup
 const { transporter, sendRespone } = require('../utils/clientRespone')
-const { sortEventsByDateTime, sortEventsByViews } = require('../utils/sortList')
 const { checkAndUpdateEventStatus } = require('../utils/dataHandler')
 
 // Controller for event
@@ -21,7 +20,7 @@ const createNewEvent = async (req, res, next) => {   // Create new Event
 
 const getEvents = async (req, res, next) => {      // Get list event
   let { page, limit, status, eventId, name, host, 
-    member, type, startDate, endDate, sort, ticket } = req.query
+    member, type, startDate, endDate, ticket } = req.query
 
   limit = parseInt(limit) || 8
   page = parseInt(page) || 1
@@ -49,15 +48,9 @@ const getEvents = async (req, res, next) => {      // Get list event
         eventQuery.date = { $gte: startDate, $lte: endDate };
     }
 
-    let events = await Event.find(eventQuery).skip(skip).limit(limit)
+    let events = await Event.find(eventQuery).sort({ date: 'desc', view: 'desc' }).skip(skip).limit(limit)
 
     if (events.length === 0) return sendRespone(res, { data: [] }, "Không thể tìm thấy sự kiện!")
-
-    if (sort === 'view') { 
-      events = sortEventsByViews(events)
-    } else {
-      events = sortEventsByDateTime(events)
-    }
 
     if (ticket && ticket == 'true') {
       const eventIds = events.map(event => event._id)
@@ -137,13 +130,7 @@ const getRevenue = async (req, res, next) => {      // Get revenue
 
     const totalEvents = await Event.countDocuments(eventQuery)
 
-    const totalPages = Math.ceil(totalEvents / limit)
-
-    if (sort === 'view') { 
-      events = sortEventsByViews(events)
-    } else {
-      events = sortEventsByDateTime(events)
-    }
+    const totalPages = Math.ceil(totalEvents / limit) 
 
     checkAndUpdateEventStatus(events)
 
@@ -182,7 +169,7 @@ const getViewList = async (req, res, next) => {
       eventQuery.date = { $gte: startDate, $lte: endDate }
     }
 
-    const eventList = await Event.find(eventQuery).select('_id name host type status views')
+    const eventList = await Event.find(eventQuery).sort({ date: 'desc', view: 'desc' }).select('_id name host type status views')
 
     let eventNameList = []
     let viewList = []
