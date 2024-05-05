@@ -294,6 +294,22 @@ const updateEvent = async (req, res, next) => {   // Update event by id (patch)
   }
 }
 
+const updateEventView = async (req, res, next) => {
+  let { eventId } = req.query 
+
+  try {
+    const foundEvent = await Event.findById(eventId).select("_id name views")
+
+    if (!foundEvent) return sendRespone(res, { data: [] }, "Không thể tìm thấy sự kiện!")
+
+    foundEvent.views += 1
+    await foundEvent.save()
+
+    return sendRespone(res, { data: foundEvent }, "Cập nhật số lượng vé thành công!")
+  } catch (error) {
+    next(error)
+  }
+}
 
 // Export controllers
 module.exports = {
@@ -304,6 +320,7 @@ module.exports = {
   createNewEvent,
   updateEvent,
   updateEventProfit,
+  updateEventView,
   deactivateEvent,
   activateEvent,
   sendEmails
