@@ -48,7 +48,7 @@ const getEvents = async (req, res, next) => {      // Get list event
         eventQuery.date = { $gte: startDate, $lte: endDate };
     }
 
-    let events = await Event.find(eventQuery).sort({ date: 'desc', view: 'desc' }).skip(skip).limit(limit)
+    let events = await Event.find(eventQuery).sort({ date: 'asc', view: 'desc' }).skip(skip).limit(limit)
 
     if (events.length === 0) return sendRespone(res, { data: [] }, "Không thể tìm thấy sự kiện!")
 
