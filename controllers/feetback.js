@@ -1,12 +1,20 @@
 // Import module for feetback controller
 const Feetback = require('../models/Feedback')
 const User = require('../models/User')
+const Bill = require('../models/Bill')
 const { sendRespone } = require('../utils/clientRespone')
 
 // Controller for feetback
 const createFeetback = async (req, res, next) => {
   const newFeetback = new Feetback(req.body)
-  
+
+  const foundBill = await Bill.findById(req.body.billId)
+
+  if (!foundBill) return sendRespone(res, { data: [] }, "Không thể tìm thấy hóa đơn!")
+
+  foundBill.feetbackStatus = 1
+
+  await foundBill.save()
   await newFeetback.save()
 
   return sendRespone(res, { data: newFeetback }, "Tạo phản hồi thông tin thành công!")
