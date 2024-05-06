@@ -23,7 +23,6 @@ const getFeetbacks = async (req, res, next) => {
   try {
     let feetbackquery = {}
     if (feetbackId) feetbackquery._id = feetbackId 
-    if (eventId) feetbackquery.eventId = eventId
     if (rate) feetbackquery.rate = rate 
     if (status) feetbackquery.status = status 
 

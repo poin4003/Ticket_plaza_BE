@@ -191,7 +191,7 @@ const schemas = {
 
   feetbackSchema: Joi.object().keys({                  // Validate schema for feetback
     billId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
-    eventId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
+    // eventId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
     rate: Joi.number().max(5).required(),
     context: Joi.string().required(),
     status: Joi.number().required()
@@ -199,7 +199,7 @@ const schemas = {
 
   feetbackOptionalSchema: Joi.object().keys({          // Validate schema for feetback (updating)
     billId: Joi.string().regex(/^[0-9a-fA-F]{24}$/),
-    eventId: Joi.string().regex(/^[0-9a-fA-F]{24}$/),
+    // eventId: Joi.string().regex(/^[0-9a-fA-F]{24}$/),
     rate: Joi.number().max(5),
     context: Joi.string(),
     status: Joi.number()

@@ -7,10 +7,6 @@ const FeetbackSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'Bill'
   },
-  eventId: {
-    type: Schema.Types.ObjectId,
-    ref: 'Event'
-  },
   rate: {
     type: Number
   },
