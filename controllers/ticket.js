@@ -29,7 +29,7 @@ const getTickets = async (req, res, next) => {        // Get list ticket
     if (name) ticketQuery.name = { $regex: new RegExp(name, 'i') }
     if (status) ticketQuery.status = status
     
-    let tickets = await Ticket.find(ticketQuery).sort({ releaseDate: 'desc' }).skip(skip).limit(limit)
+    let tickets = await Ticket.find(ticketQuery).sort({ releaseDate: 'asc' }).skip(skip).limit(limit)
 
     if (tickets.length === 0) return sendRespone(res, { data: [] }, "Không thể tìm thấy vé!")
 
