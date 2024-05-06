@@ -26,11 +26,15 @@ const getFeetbacks = async (req, res, next) => {
     if (rate) feetbackquery.rate = rate 
     if (status) feetbackquery.status = status 
 
-    let feetbacks = await Feetback.find(feetbackquery).skip(skip).limit(limit).populate({ path: 'eventId', select: '_id name' })
-    .populate({ path: 'billId', select: 'userId'})
+    let feetbacks = await Feetback.find(feetbackquery).skip(skip).limit(limit)
+    .populate({ path: 'billId', select: '_id eventId userId'})
+    
+    if (eventId) { 
+      feetbacks = feetbacks.filter(feetback => feetback.billId.eventId.toString() === eventId.toString())
+    }
 
     if (feetbacks.length === 0) return sendRespone(res, { data: [] }, "Không thể tìm thấy thông tin phản hồi!")
-
+    
     for (let i = 0; i < feetbacks.length; i++) {
       const user = await User.findById(feetbacks[i].billId.userId).select('_id fullName email')
       if (!user) return sendRespone(res, { data: [] }, "Không thể tìm thấy người dùng!")
@@ -39,8 +43,6 @@ const getFeetbacks = async (req, res, next) => {
         event: feetbacks[i].eventId,
         user: user
       }
-      delete feetbacks[i].eventId
-      delete feetbacks[i].billId
     }
 
     const totalFeetbacks = await Feetback.countDocuments(feetbackquery)
