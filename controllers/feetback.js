@@ -13,7 +13,7 @@ const createFeetback = async (req, res, next) => {
 }
 
 const getFeetbacks = async (req, res, next) => {
-  let { page, limit, status, feetbackId, eventId, rate} = req.query 
+  let { page, limit, status, feetbackId, eventId, billId, rate} = req.query 
 
   limit = parseInt(limit) || 8
   page = parseInt(page) || 1
@@ -25,6 +25,7 @@ const getFeetbacks = async (req, res, next) => {
     if (feetbackId) feetbackquery._id = feetbackId 
     if (rate) feetbackquery.rate = rate 
     if (status) feetbackquery.status = status 
+    if (billId) feetbackquery.billId = billId
 
     let feetbacks = await Feetback.find(feetbackquery).skip(skip).limit(limit)
     .populate({ path: 'billId', select: '_id eventId userId'})
