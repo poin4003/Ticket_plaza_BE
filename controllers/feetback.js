@@ -31,13 +31,13 @@ const getFeetbacks = async (req, res, next) => {
   try {
     let feetbackquery = {}
     if (feetbackId) feetbackquery._id = feetbackId 
-    if (rate) feetbackquery.rate = rate 
+    if (rate) feetbackquery.rate = parseInt(rate)
     if (status) feetbackquery.status = status 
     if (billId) feetbackquery.billId = billId
 
     let feetbacks = await Feetback.find(feetbackquery).skip(skip).limit(limit)
     .populate({ path: 'billId', select: '_id eventId userId'})
-    
+
     if (eventId) { 
       feetbacks = feetbacks.filter(feetback => feetback.billId.eventId.toString() === eventId.toString())
     }
