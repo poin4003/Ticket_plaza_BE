@@ -21,7 +21,7 @@ const createFeetback = async (req, res, next) => {
 }
 
 const getFeetbacks = async (req, res, next) => {
-  let { page, limit, status, feetbackId, eventId, billId, rate} = req.query 
+  let { page, limit, status, feetbackId, eventId, billId, rate } = req.query 
 
   limit = parseInt(limit) || 8
   page = parseInt(page) || 1
@@ -35,12 +35,17 @@ const getFeetbacks = async (req, res, next) => {
     if (status) feetbackquery.status = status 
     if (billId) feetbackquery.billId = billId
 
-    let feetbacks = await Feetback.find(feetbackquery).skip(skip).limit(limit)
-    .populate({ path: 'billId', select: '_id eventId userId'})
+    let feetbacks = await Feetback.find(feetbackquery).populate({ path: 'billId', select: '_id eventId userId'})
 
     if (eventId) { 
       feetbacks = feetbacks.filter(feetback => feetback.billId.eventId.toString() === eventId.toString())
     }
+
+    const totalFeetbacks = feetbacks.length
+
+    const totalPages = Math.ceil(totalFeetbacks / limit)
+
+    feetbacks = feetbacks.slice(skip, skip + limit)
 
     if (feetbacks.length === 0) return sendRespone(res, { data: [] }, "Không thể tìm thấy thông tin phản hồi!")
     
@@ -54,22 +59,18 @@ const getFeetbacks = async (req, res, next) => {
       }
     }
 
-    const totalFeetbacks = await Feetback.countDocuments(feetbackquery)
-
-    const totalPages = Math.ceil(totalFeetbacks / limit)
-
     const pagination = {
       totalItems: totalFeetbacks,
       currentPage: page,
       totalPages: totalPages
     }
 
-    return sendRespone(res, { data: feetbacks }, `${totalFeetbacks} phản hồi thông tin đã được tìm thấy!`,
-    201, pagination)
+    return sendRespone(res, { data: feetbacks }, `${totalFeetbacks} phản hồi thông tin đã được tìm thấy!`, 201, pagination)
   } catch (error) {
     next(error)
   }
 }
+
 
 const updateFeetbacks = async (req, res, next) => {
   const { feetbackId } = req.query 
