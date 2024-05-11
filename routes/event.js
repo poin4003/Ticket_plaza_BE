@@ -45,8 +45,7 @@ router.route('/updateEventProfit')
     EventController.updateEventProfit)
    
 router.route('/updateEventView')
-  .patch(passport.authenticate('jwt', { session: false }),
-    EventController.updateEventView)
+  .patch(EventController.updateEventView)
 
 router.route('/deactivateEvent')
   .patch(passport.authenticate('jwt', { session: false }),
