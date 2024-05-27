@@ -62,7 +62,7 @@ router.route('/auth/google')
   .get(passport.authenticate('google', { scope: ["profile", "email"] }))
 
 router.route('/auth/google/callback')
-  .get(passport.authenticate('google', {failureRedirect: 'http://locachost:3000/login'}), UserController.authGoogle);
+  .get(passport.authenticate('google', {failureRedirect: `${process.env.CLIENT_ENDPOINT}/login`}), UserController.authGoogle);
 
 // Export module
 module.exports = router
