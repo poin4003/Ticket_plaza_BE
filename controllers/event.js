@@ -83,12 +83,12 @@ const getEvents = async (req, res, next) => {      // Get list event
 }
 
 const getEventDetail = async (req, res, next) => {
-  let { eventId } = req.query 
+  let { eventId, ticketStatus } = req.query 
 
   try {
     const event = await Event.findById(eventId)
 
-    const tickets = await Ticket.find({ eventId: eventId })
+    const tickets = await Ticket.find({ eventId: eventId, status: ticketStatus })
 
     const eventType = await EventType.findOne({ typeId: event.type }).select('eventTypeName')
 
