@@ -255,24 +255,24 @@ const paid = async (req, res, next) => {
 }
 
 const checkin = async (req, res, next) => {
-  let { billId } = req.query
-  console.log(billId);
+  let { billId, eventId } = req.query
   try {
     let query = {}
 
     if (billId) query._id = billId
+    if (eventId) query.eventId = eventId
 
     const foundBill = await Bill.findOne(query)
 
-    if (!foundBill) return sendRespone(res, { data: [] }, "Không thể tìm thấy hóa đơn!")
+    if (!foundBill) return sendRespone(res, { status: "fail" }, "Không thể tìm thấy hóa đơn!")
 
     if (foundBill.status === 0) {
-      return sendRespone(res, { data: [] }, "Hóa đơn chưa được thanh toán! Vui lòng thanh toán trước!")
+      return sendRespone(res, { status: "fail" }, "Hóa đơn chưa được thanh toán! Vui lòng thanh toán trước!")
     } else if (foundBill.status === 1) {
       foundBill.status = 2
       await foundBill.save()
     } else if (foundBill.status === 2) {
-      return sendRespone(res, { data: [] }, "Hóa đơn đã được checkin! Bạn có thể tham gia sự kiện rồi!")
+      return sendRespone(res, { status: "fail" }, "Hóa đơn đã được checkin!")
     }
 
     return sendRespone(res, { data: foundBill }, "Checkin thành công! Chúc bạn tham gia sự kiện vui vẻ!")
